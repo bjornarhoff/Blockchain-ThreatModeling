@@ -11,7 +11,16 @@ import sqlite3
 def main():
    root = Tk()
    root.title("Blockchain interoperability")
-   root.geometry("1000x500")
+   root.geometry("500x500")
+
+   # Creating tabs
+   tab_control = ttk.Notebook(root)
+   tab1 = Frame(tab_control)
+   tab_control.add(tab1, text="Add blockchain")
+
+   tab2 = Frame(tab_control)
+   tab_control.add(tab2, text="Create blockchain interoperability")
+   tab_control.pack(expand=1, fill="both")
 
    # Database
    conn = sqlite3.connect('blockchain_book.db')
@@ -62,7 +71,7 @@ def main():
       for record in records:
          prt_records += str(record) + "\n"
 
-      query_label = Label(root, text=prt_records)
+      query_label = Label(tab1, text=prt_records)
       query_label.grid(row=8, column=0, columnspan=2)
 
 
@@ -83,27 +92,27 @@ def main():
    b_type.grid(row=0, column=1, padx=20) """
 
    # Textbox
-   b_type = Entry(root, width=30)
+   b_type = Entry(tab1, width=30)
    b_type.grid(row=0, column=1, padx=20)
-   consensus = Entry(root, width=30)
+   consensus = Entry(tab1, width=30)
    consensus.grid(row=1, column=1, padx=20)
-   crypt = Entry(root, width=30)
+   crypt = Entry(tab1, width=30)
    crypt.grid(row=2, column=1, padx=20)
 
    # Textbox label
-   b_type_label = Label(root, text="Blockchain Type")
+   b_type_label = Label(tab1, text="Blockchain Type")
    b_type_label.grid(row=0, column=0)
-   consensus_label = Label(root, text="Consensus")
+   consensus_label = Label(tab1, text="Consensus")
    consensus_label.grid(row=1, column=0)
-   crypt_label = Label(root, text="Cryptography")
+   crypt_label = Label(tab1, text="Cryptography")
    crypt_label.grid(row=2, column=0)
 
    # Submit Button
-   submit_button = Button(root, text="Add blockchain to database", command=submit)
+   submit_button = Button(tab1, text="Add blockchain to database", command=submit)
    submit_button.grid(row=6, column=0, columnspan=2, pady=10, ipadx=100)
 
    # Query button
-   query_button = Button(root, text="Show records", command=query)
+   query_button = Button(tab1, text="Show records", command=query)
    query_button.grid(row=7, column =0, columnspan= 2, pady=10, padx=10, ipadx=137)
 
 
