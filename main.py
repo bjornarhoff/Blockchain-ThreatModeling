@@ -127,6 +127,7 @@ def main():
       htlc.delete(0,END)
       relay.delete(0,END)
       """
+
       return
 
 
@@ -198,6 +199,15 @@ def main():
       # Close Connection
       conn.close()
 
+   def varUpdate():
+      i = 0
+      if (var1.get() == 1): i = i + 1
+      if (var2.get() == 1): i = i + 1
+      if (var3.get() == 1): i = i + 1
+      if (i == 1):
+         submitInteroperability_button['state'] = NORMAL
+      else:
+         submitInteroperability_button['state'] = DISABLED
 
 
    """--------------------- TAB 1 ---------------------"""
@@ -254,9 +264,9 @@ def main():
    blockchain2_type.grid(row=1, column=1, padx=20, pady=10)
 
    # Textbox
-   notary = Checkbutton(tab2, text="Notary Scheme", variable=var1).grid(row=2, column=0, pady=10, padx=20)
-   htlc = Checkbutton(tab2, text="HTLC", variable=var2).grid(row=2,column=1, pady=10)
-   relay = Checkbutton(tab2, text="Relay/Sidechain", variable=var3).grid(row=2, column=3, pady=10)
+   notary = Checkbutton(tab2, text="Notary Scheme", variable=var1, command=varUpdate).grid(row=2, column=0, pady=10, padx=20)
+   htlc = Checkbutton(tab2, text="HTLC", variable=var2, command=varUpdate).grid(row=2,column=1, pady=10)
+   relay = Checkbutton(tab2, text="Relay/Sidechain", variable=var3, command=varUpdate).grid(row=2, column=3, pady=10)
 
    # Textbox label
    blockchain1_type = Label(tab2, text="Blockchain A")
@@ -265,8 +275,8 @@ def main():
    blockchain2_type.grid(row=1, column=0)
 
    # Submit Button
-   submit_button = Button(tab2, text="Create interoperability", command=submitInteroperability)
-   submit_button.grid(row=6, column=0, columnspan=4, pady=10, ipadx=100)
+   submitInteroperability_button = Button(tab2, text="Create interoperability", command=submitInteroperability, state=DISABLED)
+   submitInteroperability_button.grid(row=6, column=0, columnspan=4, pady=10, ipadx=100)
 
    # Commit Changes
    conn.commit()
