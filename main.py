@@ -199,6 +199,9 @@ def main():
       # Close Connection
       conn.close()
 
+
+
+   # Function to restrict the user to select only one strategy
    def varUpdate():
       i = 0
       if (var1.get() == 1): i = i + 1
@@ -208,6 +211,9 @@ def main():
          submitInteroperability_button['state'] = NORMAL
       else:
          submitInteroperability_button['state'] = DISABLED
+
+
+
 
 
    """--------------------- TAB 1 ---------------------"""
