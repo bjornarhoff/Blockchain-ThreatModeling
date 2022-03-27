@@ -5,13 +5,31 @@
 
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
 import sqlite3
 
 
 def main():
    root = Tk()
    root.title("Blockchain interoperability")
-   root.geometry("500x500")
+   root.geometry("1000x500")
+
+   # Add Some Style
+   style = ttk.Style()
+
+   # Pick A Theme
+   style.theme_use('clam')
+
+   # Configure the Treeview Colors
+   style.configure("Treeview",
+                   background="#D3D3D3",
+                   foreground="black",
+                   rowheight=25,
+                   fieldbackground="#D3D3D3")
+
+   # Change Selected Color
+   style.map('Treeview',
+             background=[('selected', "#347083")])
 
    # Creating tabs
    tab_control = ttk.Notebook(root)
@@ -20,7 +38,9 @@ def main():
 
    tab2 = Frame(tab_control)
    tab_control.add(tab2, text="Create blockchain interoperability")
-   tab_control.pack(expand=1, fill="both")
+   tab_control.pack(expand=1, fill="both", padx=100)
+
+
 
    # Database
    conn = sqlite3.connect('blockchain_book.db')
@@ -55,15 +75,37 @@ def main():
                         'crypt': crypt.get()
                      })
 
-      # Commit Changes
+      type = b_type.get()
+      cons = consensus.get()
+      crypto = crypt.get()
+      msg = ''
+
+      if len(cons) == 0 & len(crypto) == 0:
+         msg = 'Input fields can\'t be empty'
+      elif type == '':
+         msg = 'Blockchain type can\'t be empty'
+      else:
+         try:
+            if any(ch.isdigit() for ch in cons):
+               msg = 'Consensus can\'t have numbers'
+            if any(ch.isdigit() for ch in crypto):
+               msg = 'Cryptography can\'t have numbers'
+            else:
+               msg = 'Blockchain added to database!'
+               # Clear texboxes
+               b_type.delete(0, END)
+               consensus.delete(0, END)
+               crypt.delete(0, END)
+         except Exception as ep:
+            messagebox.showerror('error', ep)
+
+      messagebox.showinfo('message', msg)
+
+     # Commit Changes
       conn.commit()
       # Close Connection
       conn.close()
 
-      # Clear texboxes
-      b_type.delete(0, END)
-      consensus.delete(0,END)
-      crypt.delete(0,END)
 
 
    # Submit interoperable blockchain to database
@@ -92,19 +134,64 @@ def main():
    def query():
       conn = sqlite3.connect('blockchain_book.db')
       cursor = conn.cursor()
+      query_button['state'] ='disable'
+
+      # Treeview Frame
+      tree_frame = Frame(root)
+      tree_frame.pack(pady=10)
+
+      # Treeview Scrollbar
+      tree_scroll = Scrollbar(tree_frame)
+      tree_scroll.pack(side=RIGHT, fill=Y)
+
+      # Treeview
+      tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, selectmode="extended")
+      tree.pack()
+
+      # Scrollbar
+      tree_scroll.config(command=tree.yview)
+
+      # Define Columns
+      tree['columns'] = ("ID", "Blockchain Type", "Consensus", "Cryptography")
+
+      # Format Colums
+      tree.column("#0", width=0, stretch=NO)
+      tree.column("ID", width=100, anchor=CENTER)
+      tree.column("Blockchain Type", anchor=CENTER, width=140)
+      tree.column("Consensus", anchor=CENTER, width=140)
+      tree.column("Cryptography", anchor=CENTER, width=100)
+
+      # Column Heading
+      tree.heading("ID", text="ID", anchor=CENTER)
+      tree.heading("Blockchain Type", text="Blockchain Type", anchor=CENTER)
+      tree.heading("Consensus", text="Consensus", anchor=CENTER)
+      tree.heading("Cryptography", text="Cryptography", anchor=CENTER)
+
+
+      # Clear the Treeview
+      for record in tree.get_children():
+         tree.delete(record)
+
+      # Add our data to the screen
+      global counter
+      counter = 0
 
       # Query the database
       cursor.execute("SELECT *, oid from blockchains")
       records = cursor.fetchall()
 
-      # Loop through results
-      prt_records =''
+
       for record in records:
-         prt_records += str(record) + "\n"
-
-      query_label = Label(tab1, text=prt_records)
-      query_label.grid(row=8, column=0, columnspan=2)
-
+         if counter % 2 == 0:
+            tree.insert(parent='', index='end', iid=counter, text='',
+                           values=(record[3], record[0], record[1], record[2]),
+                           tags=('evenrow',))
+         else:
+            tree.insert(parent='', index='end', iid=counter, text='',
+                           values=(record[3], record[0], record[1], record[2]),
+                           tags=('oddrow',))
+         # increment counter
+         counter += 1
 
       # Commit Changes
       conn.commit()
@@ -112,19 +199,19 @@ def main():
       conn.close()
 
 
+
    """--------------------- TAB 1 ---------------------"""
    type = StringVar()
    opt = ['Private blockchain', 'Public blockchain']
 
+   # Combobox
    b_type = ttk.Combobox(tab1, textvariable=type, width=20, values=opt)
-   b_type.grid(row=0, column=1, padx=20)
+   b_type.grid(row=0, column=1, padx=20, pady=10)
    # Textbox
-   #b_type = Entry(tab1, width=30)
-   #b_type.grid(row=0, column=1, padx=20)
    consensus = Entry(tab1, width=30)
-   consensus.grid(row=1, column=1, padx=20)
+   consensus.grid(row=1, column=1, padx=20, pady=10)
    crypt = Entry(tab1, width=30)
-   crypt.grid(row=2, column=1, padx=20)
+   crypt.grid(row=2, column=1, padx=20, pady=10)
 
    # Textbox label
    b_type_label = Label(tab1, text="Blockchain Type")
@@ -162,18 +249,14 @@ def main():
       options.append(str(i[0]) + " - " + i[1])
 
    blockchain1_type = ttk.Combobox(tab2, textvariable=block1, width=20, values=options)
-   blockchain1_type.grid(row=0, column=1, padx=20)
+   blockchain1_type.grid(row=0, column=1, padx=20, pady=10)
    blockchain2_type = ttk.Combobox(tab2, textvariable=block2, width=20, values=options)
-   blockchain2_type.grid(row=1, column=1, padx=20)
+   blockchain2_type.grid(row=1, column=1, padx=20, pady=10)
 
    # Textbox
-   #blockchain1_type = Entry(tab2, width=15)
-   #blockchain1_type.grid(row=0, column=1, padx=20)
-   #blockchain2_type = Entry(tab2, width=15)
-   #blockchain2_type.grid(row=1, column=1, padx=20)
-   notary = Checkbutton(tab2, text="Notary Scheme", variable=var1).grid(row=2, column=0)
-   htlc = Checkbutton(tab2, text="HTLC", variable=var2).grid(row=2,column=1)
-   relay = Checkbutton(tab2, text="Relay/Sidechain", variable=var3).grid(row=2, column=3)
+   notary = Checkbutton(tab2, text="Notary Scheme", variable=var1).grid(row=2, column=0, pady=10, padx=20)
+   htlc = Checkbutton(tab2, text="HTLC", variable=var2).grid(row=2,column=1, pady=10)
+   relay = Checkbutton(tab2, text="Relay/Sidechain", variable=var3).grid(row=2, column=3, pady=10)
 
    # Textbox label
    blockchain1_type = Label(tab2, text="Blockchain A")
