@@ -10,9 +10,6 @@ import sqlite3
 
 
 def main():
-   root = Tk()
-   root.title("Blockchain interoperability")
-   root.geometry("1000x500")
 
    # Add Some Style
    style = ttk.Style()
@@ -40,43 +37,32 @@ def main():
    tab_control.add(tab2, text="Create blockchain interoperability")
    tab_control.pack(expand=1, fill="both", padx=100)
 
-
    try:
-
       # Submit blockchain to database
       def submitBlockchain():
-         #conn = sqlite3.connect('blockchain_book.db')
-         #cursor = conn.cursor()
+         conn = sqlite3.connect('blockchain_book.db')
+         cursor = conn.cursor()
 
          btype = b_type.get()
          cons = consensus.get()
          crypto = crypt.get()
          msg = ''
 
-         cursor.execute("""INSERT INTO blockchains(b_type, consensus_type,cryptography_type) VALUES(?,?,?)""", (btype, cons,crypto),)
-         cursor.execute("""SELECT * from blockchains""")
-         print(cursor.fetchall())
+         try:
+            cursor.execute(
+               """INSERT INTO blockchains(b_type, consensus_type,cryptography_type) 
+                      VALUES(?,?,?)""",
+                  (btype, cons, crypto), )
 
-         # Insert into tables
-         # cursor.execute("INSERT INTO blockchains(b_type,consensus,crypt) VALUES('{}','{}','{}');".format(btype,cons,crypto))
-         # cursor.execute("INSERT INTO blockchains VALUES('Public','POS',FALSE)")
+            msg = 'Blockchain added to database!'
+            # Clear texboxes
+            b_type.set('')
+            consensus.set('')
+            crypt.set('')
+         except Exception as ep:
+            messagebox.showerror('error', ep)
 
-
-         """         if cons=="" & str(crypto)=="" & btype=="":
-            msg = 'Input fields can\'t be empty'
-         else:
-            try:
-                  msg = 'Blockchain added to database!'
-                  # Clear texboxes
-                  b_type.delete(0, END)
-                  consensus.delete(0, END)
-                  crypt.delete(0, END)
-            except Exception as ep:
-               messagebox.showerror('error', ep)
-
-         messagebox.showinfo('message', msg)"""
-
-
+         messagebox.showinfo('message', msg)
 
          # Commit Changes
          conn.commit()
@@ -85,24 +71,6 @@ def main():
 
       # Submit interoperable blockchain to database
       def submitInteroperability():
-         """
-         :return:
-         conn = sqlite3.connect('blockchain_book.db')
-         cursor = conn.cursor()
-
-         # Commit Changes
-         conn.commit()
-         # Close Connection
-         conn.close()
-
-         # Clear texboxes
-         blockchain1_type.delete(0, END)
-         blockchain2_type.delete(0,END)
-         notary.delete(0,END)
-         htlc.delete(0,END)
-         relay.delete(0,END)
-         """
-
          return
 
       # Create Query function
@@ -154,6 +122,7 @@ def main():
          cursor.execute("SELECT *, oid from blockchains")
          records = cursor.fetchall()
 
+         # Show records
          for record in records:
             if counter % 2 == 0:
                tree.insert(parent='', index='end', iid=counter, text='',
@@ -166,9 +135,8 @@ def main():
             # increment counter
             counter += 1
 
-         # Commit Changes
+         # Commit Changes and Close connection
          conn.commit()
-         # Close Connection
          conn.close()
 
       # Function to restrict the user to select only one strategy
@@ -182,6 +150,7 @@ def main():
          else:
             submitInteroperability_button['state'] = DISABLED
 
+      # Dropbown menu method based on the first input
       def pick_consensus(e):
          if b_type.get() == blockchainList[0]:
             consensus.config(value=consensusPublicList)
@@ -190,80 +159,112 @@ def main():
             consensus.config(value=consensusPrivateList)
             consensus.current(0)
 
-      # Database
-      conn = sqlite3.connect('blockchain_book.db', timeout=50)
-      cursor = conn.cursor()
-      print('Database Initialization and Connection successful')
+      def databaseConnection():
+         # Database connection
+         conn = sqlite3.connect('blockchain_book.db', timeout=50)
+         cursor = conn.cursor()
+         print('Database Initialization and Connection successful')
 
-      # Create table for blockchains
-      cursor.execute(""" CREATE TABLE IF NOT EXISTS blockchains (
-                     b_type text,
-                     consensus_type text,
-                     cryptography_type BOOLEAN NOT NULL
-                     )""")
-
-      # Create table for blockchain type
-      cursor.execute(""" CREATE TABLE IF NOT EXISTS blockchainType (
-                     id integer PRIMARY KEY UNIQUE NOT NULL, 
-                     blockchain_type text
-                     )""")
-
-      # Create table for consensus
-      cursor.execute(""" CREATE TABLE IF NOT EXISTS consensus (
-                        blockchain_id integer,
-                        consensus_name text NOT NULL,
-                        FOREIGN KEY (blockchain_id) REFERENCES blockchainType (id))""")
-
-      # Create table for cryptography
-      cursor.execute(""" CREATE TABLE IF NOT EXISTS cryptography (
-                        bol_cryptography BOOLEAN NOT NULL 
+         # Create table for blockchains
+         cursor.execute(""" CREATE TABLE IF NOT EXISTS blockchains (
+                        b_type text,
+                        consensus_type text,
+                        cryptography_type BOOLEAN NOT NULL
                         )""")
 
-      cursor.execute("""INSERT INTO blockchainType VALUES(1,'Public Blockchain')""")
-      cursor.execute("""INSERT INTO blockchainType VALUES(2, 'Private Blockchain')""")
+         # Create table for blockchain type
+         cursor.execute(""" CREATE TABLE IF NOT EXISTS blockchainType (
+                        id integer PRIMARY KEY UNIQUE NOT NULL, 
+                        blockchain_type text
+                        )""")
 
-      cursor.execute("""INSERT INTO consensus VALUES(1, 'Proof-of-Work')""")
-      cursor.execute("""INSERT INTO consensus VALUES(1, 'Proof-of-Stake')""")
-      cursor.execute("""INSERT INTO consensus VALUES(2, 'POF')""")
+         # Create table for consensus
+         cursor.execute(""" CREATE TABLE IF NOT EXISTS consensus (
+                           blockchain_id integer,
+                           consensus_name text NOT NULL,
+                           FOREIGN KEY (blockchain_id) REFERENCES blockchainType (id))""")
 
-      cursor.execute("""INSERT INTO cryptography VALUES(TRUE)""")
-      cursor.execute("""INSERT INTO cryptography VALUES(FALSE)""")
+         # Create table for cryptography
+         cursor.execute("""
+            CREATE TABLE IF NOT EXISTS cryptography 
+               (bol_cryptography BOOLEAN NOT NULL)
+               """)
 
-      cursor.execute("""SELECT * from blockchains""")
+         # Data list
+         blockchain_type = [(1,'Public Blockchain'),
+                           (2,'Private Blockchain')]
+
+         consenus_type = [(1, 'Proof-of-Work'),
+                          (1, 'Proof-of-Stake'),
+                          (2, 'POF')]
+
+         # Insert data to database
+         cursor.executemany('INSERT OR IGNORE INTO blockchainType VALUES(?,?)', blockchain_type)
+         cursor.executemany('INSERT OR IGNORE INTO consensus VALUES(?,?)', consenus_type)
+
+         cursor.execute('INSERT OR IGNORE INTO cryptography VALUES(TRUE)')
+         cursor.execute('INSERT OR IGNORE INTO cryptography VALUES(FALSE)')
+
+         # Commit Changes and Close connection
+         conn.commit()
+         cursor.close()
+
+
+      # Run the database method
+      databaseConnection()
+
+
 
       """--------------------- TAB 1 ---------------------"""
+      # Database connection
+      conn = sqlite3.connect('blockchain_book.db', timeout=50)
+      cursor = conn.cursor()
+
+      # Variable
       type1 = StringVar()
-      query1 = cursor.execute("SELECT DISTINCT blockchain_type FROM blockchainType")
+      type2 = StringVar()
+      type3 = StringVar()
+
+      # Get data from database
+      query1 = cursor.execute(
+         """SELECT DISTINCT blockchain_type 
+               FROM blockchainType""")
+      # store data in list
       blockchainList = [b for b, in query1]
 
-      type2 = StringVar()
       publicQuery2 = cursor.execute(
-         "SELECT DISTINCT consensus_name from blockchainType,consensus WHERE blockchain_id == blockchainType.id AND blockchainType.id ==1")
+         """SELECT DISTINCT consensus_name 
+               FROM blockchainType,consensus 
+                  WHERE blockchain_id == blockchainType.id 
+                     AND blockchainType.id == 1""")
+      # store data in list
       consensusPublicList = [c for c, in publicQuery2]
-      print(consensusPublicList)
 
       privateQuery2 = cursor.execute(
-         "SELECT DISTINCT consensus_name FROM consensus, blockchainType WHERE blockchain_id == blockchainType.id AND blockchain_id == 2")
+         """SELECT DISTINCT consensus_name 
+               FROM consensus, blockchainType 
+                     WHERE blockchain_id == blockchainType.id 
+                           AND blockchain_id == 2""")
+      # store data in list
       consensusPrivateList = [i for i, in privateQuery2]
-      print(consensusPrivateList)
 
-      type3 = StringVar()
-      cryptoQuery = cursor.execute("SELECT DISTINCT bol_cryptography FROM cryptography")
+      cryptoQuery = cursor.execute(
+         """SELECT DISTINCT bol_cryptography
+               FROM cryptography""")
+      # store data in list
       cryptoList = [b for b, in cryptoQuery]
       trueOrFalse = [i > 0 for i in cryptoList]
 
-      # opt = ['Private blockchain', 'Public blockchain']
-
       # Combobox
-      b_type = ttk.Combobox(tab1, textvariable=type1, width=20, values=blockchainList)
+      b_type = ttk.Combobox(tab1, state="readonly",textvariable=type1, width=20, values=blockchainList)
       b_type.grid(row=0, column=1, padx=20, pady=10)
-      # bind the combobox
+      # binding the combobox
       b_type.bind("<<ComboboxSelected>>", pick_consensus)
 
-      consensus = ttk.Combobox(tab1, textvariable=type2, width=20, values=[" "])
+      consensus = ttk.Combobox(tab1, state="readonly", textvariable=type2, width=20, values=[" "])
       consensus.grid(row=1, column=1, padx=20, pady=10)
 
-      crypt = ttk.Combobox(tab1, textvariable=type3, width=20, values=trueOrFalse)
+      crypt = ttk.Combobox(tab1, state="readonly",  textvariable=type3, width=20, values=trueOrFalse)
       crypt.grid(row=2, column=1, padx=20, pady=10)
 
       # Textbox label
@@ -282,8 +283,8 @@ def main():
       query_button = Button(tab1, text="Show records", command=query)
       query_button.grid(row=7, column=0, columnspan=2, pady=10, padx=10, ipadx=137)
 
-      """--------------------- TAB 2 ---------------------"""
 
+      """--------------------- TAB 2 ---------------------"""
       # Variables
       var1 = IntVar()
       var2 = IntVar()
@@ -293,22 +294,18 @@ def main():
 
       # Combobox
       options = []
-      # Query the database
-     # conn = sqlite3.connect('blockchain_book.db')
-      #cursor = conn.cursor()
       cursor.execute("SELECT oid,blockchain_type from blockchainType")
       records = cursor.fetchall()
       for i in records:
          options.append(str(i[0]) + " - " + i[1])
 
-      blockchain1_type = ttk.Combobox(tab2, textvariable=block1, width=20, values=options)
+      blockchain1_type = ttk.Combobox(tab2, state="readonly",  textvariable=block1, width=20, values=options)
       blockchain1_type.grid(row=0, column=1, padx=20, pady=10)
-      blockchain2_type = ttk.Combobox(tab2, textvariable=block2, width=20, values=options)
+      blockchain2_type = ttk.Combobox(tab2, state="readonly", textvariable=block2, width=20, values=options)
       blockchain2_type.grid(row=1, column=1, padx=20, pady=10)
 
       # Textbox
-      notary = Checkbutton(tab2, text="Notary Scheme", variable=var1, command=varUpdate).grid(row=2, column=0, pady=10,
-                                                                                              padx=20)
+      notary = Checkbutton(tab2, text="Notary Scheme", variable=var1, command=varUpdate).grid(row=2, column=0, pady=10,padx=20)
       htlc = Checkbutton(tab2, text="HTLC", variable=var2, command=varUpdate).grid(row=2, column=1, pady=10)
       relay = Checkbutton(tab2, text="Relay/Sidechain", variable=var3, command=varUpdate).grid(row=2, column=3, pady=10)
 
@@ -323,28 +320,20 @@ def main():
                                              state=DISABLED)
       submitInteroperability_button.grid(row=6, column=0, columnspan=4, pady=10, ipadx=100)
 
-      # Commit Changes
+      # Commit Changes and Close connection
       conn.commit()
-
-      root.mainloop()
-
-      # get data
-      record = cursor.fetchall()
-      print(f'SQLite Version - {record}')
       cursor.close()
+      conn.close()
 
+   # Throw exception
    except sqlite3.Error as error:
       print('Error occured - ', error)
-
-   finally:
-      # If the connection was established then close it
-      if conn:
-         conn.close()
-         print('SQLite Connection closed')
-
-
 
 
 # RUN THE PROGRAM
 if __name__ == '__main__':
-    main()
+   root = Tk()
+   root.title("Blockchain interoperability")
+   root.geometry("1000x500")
+   main()
+   root.mainloop()
