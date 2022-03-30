@@ -71,6 +71,13 @@ def main():
 
       # Submit interoperable blockchain to database
       def submitInteroperability():
+         conn = sqlite3.connect('blockchain_book.db')
+         c = conn.cursor()
+
+         btype1 = blockchain1_type.get()
+         btype2 = blockchain2_type.get()
+
+
          return
 
       # Create Query function
@@ -141,10 +148,15 @@ def main():
 
       # Function to restrict the user to select only one strategy
       def varUpdate():
+         v1 = var1.get()
+         v2 = var2.get()
+         v3 = var3.get()
+
          i = 0
-         if (var1.get() == 1): i = i + 1
-         if (var2.get() == 1): i = i + 1
-         if (var3.get() == 1): i = i + 1
+         if (v1 == "Notary"): i = i + 1
+         if (v2 == "HTLC"): i = i + 1
+         if (v3 == "Relay"): i = i + 1
+
          if (i == 1):
             submitInteroperability_button['state'] = NORMAL
          else:
@@ -169,14 +181,12 @@ def main():
          cursor.execute(""" CREATE TABLE IF NOT EXISTS blockchains (
                         b_type text,
                         consensus_type text,
-                        cryptography_type BOOLEAN NOT NULL
-                        )""")
+                        cryptography_type BOOLEAN NOT NULL)""")
 
          # Create table for blockchain type
          cursor.execute(""" CREATE TABLE IF NOT EXISTS blockchainType (
                         id integer PRIMARY KEY UNIQUE NOT NULL, 
-                        blockchain_type text
-                        )""")
+                        blockchain_type text)""")
 
          # Create table for consensus
          cursor.execute(""" CREATE TABLE IF NOT EXISTS consensus (
@@ -185,10 +195,16 @@ def main():
                            FOREIGN KEY (blockchain_id) REFERENCES blockchainType (id))""")
 
          # Create table for cryptography
-         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS cryptography 
-               (bol_cryptography BOOLEAN NOT NULL)
-               """)
+         cursor.execute("""CREATE TABLE IF NOT EXISTS cryptography(
+                            bol_cryptography BOOLEAN NOT NULL)""")
+
+         # Create table for interoperability
+         cursor.execute("""CREATE TABLE IF NOT EXISTS interoperability(
+                        blockchain_id INTEGER,
+                        first_blockchain text,
+                        second_blockchain text, 
+                        strategy_type text,
+                        FOREIGN KEY (blockchain_id) REFERENCES blockchains(oid))""")
 
          # Data list
          blockchain_type = [(1,'Public Blockchain'),
@@ -286,28 +302,28 @@ def main():
 
       """--------------------- TAB 2 ---------------------"""
       # Variables
-      var1 = IntVar()
-      var2 = IntVar()
-      var3 = IntVar()
+      var1 = StringVar()
+      var2 = StringVar()
+      var3 = StringVar()
       block1 = StringVar()
       block2 = StringVar()
 
       # Combobox
       options = []
-      cursor.execute("SELECT oid,blockchain_type from blockchainType")
+      cursor.execute("SELECT b_type,consensus_type from blockchains")
       records = cursor.fetchall()
       for i in records:
          options.append(str(i[0]) + " - " + i[1])
 
-      blockchain1_type = ttk.Combobox(tab2, state="readonly",  textvariable=block1, width=20, values=options)
+      blockchain1_type = ttk.Combobox(tab2, state="readonly",  textvariable=block1, width=30, values=options)
       blockchain1_type.grid(row=0, column=1, padx=20, pady=10)
-      blockchain2_type = ttk.Combobox(tab2, state="readonly", textvariable=block2, width=20, values=options)
+      blockchain2_type = ttk.Combobox(tab2, state="readonly", textvariable=block2, width=30, values=options)
       blockchain2_type.grid(row=1, column=1, padx=20, pady=10)
 
       # Textbox
-      notary = Checkbutton(tab2, text="Notary Scheme", variable=var1, command=varUpdate).grid(row=2, column=0, pady=10,padx=20)
-      htlc = Checkbutton(tab2, text="HTLC", variable=var2, command=varUpdate).grid(row=2, column=1, pady=10)
-      relay = Checkbutton(tab2, text="Relay/Sidechain", variable=var3, command=varUpdate).grid(row=2, column=3, pady=10)
+      notary = Checkbutton(tab2, text="Notary Scheme", variable=var1, onvalue="Notary", command=varUpdate).grid(row=2, column=0, pady=10,padx=20)
+      htlc = Checkbutton(tab2, text="HTLC", variable=var2, onvalue="HTLC", command=varUpdate).grid(row=2, column=1, pady=10)
+      relay = Checkbutton(tab2, text="Relay/Sidechain", onvalue="Relay", variable=var3, command=varUpdate).grid(row=2, column=3, pady=10)
 
       # Textbox label
       blockchain1_type = Label(tab2, text="Blockchain A")
