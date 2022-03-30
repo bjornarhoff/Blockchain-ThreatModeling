@@ -73,8 +73,8 @@ def main():
             conn = sqlite3.connect('blockchain_book.db')
             c = conn.cursor()
 
-            btype1 = blockchain1combo_type.get()
-            btype2 = blockchain2combo_type.get()
+            btype1 = block1.get()
+            btype2 = block2.get()
             checkboxes = [var1, var2, var3]
 
             strategy = ''
@@ -85,13 +85,15 @@ def main():
                   strategy += c.get()
                if c.get() == "Relay":
                   strategy += c.get()
+
             msg = ''
 
+            query = '''INSERT INTO interoperability(first_blockchain, second_blockchain,strategy_type)
+                      VALUES(?,?,?)'''
+            params = (btype1, btype2, strategy)
+
             try:
-                #c.execute(
-                 #   """ INSERT INTO interoperability(first_blockchain, second_blockchain,strategy_type)
-                  #    VALUES(?,?,?)""",
-                   # (btype1, btype2, strategy), )
+                c.execute(query, params)
 
                 msg = 'Interoperability created!'
                 # Clear texboxes
@@ -212,6 +214,10 @@ def main():
                 consensus.config(value=consensusPrivateList)
                 consensus.current(0)
 
+        # Method to prevent from choosing the same value in combobox
+        def update_combos(e):
+            blockchain1combo_type['values'] = [x for x in options if x != blockchain2combo_type.get()]
+            blockchain2combo_type['values'] = [x for x in options if x != blockchain1combo_type.get()]
 
         def databaseConnection():
             # Database connection
@@ -356,6 +362,7 @@ def main():
 
         blockchain1combo_type = ttk.Combobox(tab2, state="readonly", textvariable=block1, width=30, values=options)
         blockchain1combo_type.grid(row=0, column=1, padx=20, pady=10)
+        blockchain1combo_type.bind("<<ComboboxSelected>>", update_combos)
         blockchain2combo_type = ttk.Combobox(tab2, state="readonly", textvariable=block2, width=30, values=options)
         blockchain2combo_type.grid(row=1, column=1, padx=20, pady=10)
 
