@@ -73,10 +73,44 @@ def main():
             conn = sqlite3.connect('blockchain_book.db')
             c = conn.cursor()
 
-            btype1 = blockchain1_type.get()
-            btype2 = blockchain2_type.get()
+            btype1 = blockchain1combo_type.get()
+            btype2 = blockchain2combo_type.get()
+            checkboxes = [var1, var2, var3]
 
-            return
+            strategy = ''
+            for c in checkboxes:
+               if c.get() == "Notary":
+                  strategy += c.get()
+               if c.get() == "HTLC":
+                  strategy += c.get()
+               if c.get() == "Relay":
+                  strategy += c.get()
+            msg = ''
+
+            try:
+                #c.execute(
+                 #   """ INSERT INTO interoperability(first_blockchain, second_blockchain,strategy_type)
+                  #    VALUES(?,?,?)""",
+                   # (btype1, btype2, strategy), )
+
+                msg = 'Interoperability created!'
+                # Clear texboxes
+                blockchain1combo_type.set('')
+                blockchain2combo_type.set('')
+                var1.set(0)
+                var2.set(0)
+                var3.set(0)
+            except Exception as ep:
+                messagebox.showerror('error', ep)
+
+            messagebox.showinfo('message', msg)
+
+            # Commit Changes
+            conn.commit()
+            # Close Connection
+            conn.close()
+
+
 
         # Create Query function
         def query():
@@ -312,6 +346,7 @@ def main():
         block1 = StringVar()
         block2 = StringVar()
 
+
         # Combobox
         options = []
         cursor.execute("SELECT b_type,consensus_type from blockchains")
@@ -319,10 +354,10 @@ def main():
         for i in records:
             options.append(str(i[0]) + " - " + i[1])
 
-        blockchain1_type = ttk.Combobox(tab2, state="readonly", textvariable=block1, width=30, values=options)
-        blockchain1_type.grid(row=0, column=1, padx=20, pady=10)
-        blockchain2_type = ttk.Combobox(tab2, state="readonly", textvariable=block2, width=30, values=options)
-        blockchain2_type.grid(row=1, column=1, padx=20, pady=10)
+        blockchain1combo_type = ttk.Combobox(tab2, state="readonly", textvariable=block1, width=30, values=options)
+        blockchain1combo_type.grid(row=0, column=1, padx=20, pady=10)
+        blockchain2combo_type = ttk.Combobox(tab2, state="readonly", textvariable=block2, width=30, values=options)
+        blockchain2combo_type.grid(row=1, column=1, padx=20, pady=10)
 
         # Textbox
         notary = Checkbutton(tab2, text="Notary Scheme", variable=var1, onvalue="Notary", command=varUpdate).grid(row=2,
