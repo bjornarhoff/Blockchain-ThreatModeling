@@ -43,19 +43,21 @@ def main():
             cursor = conn.cursor()
 
             btype = b_type.get()
+            bname = b_name.get()
             cons = consensus.get()
             crypto = crypt.get()
             msg = ''
 
             try:
                 cursor.execute(
-                    """INSERT INTO blockchains(b_type, consensus_type,cryptography_type) 
-                      VALUES(?,?,?)""",
-                    (btype, cons, crypto), )
+                    """INSERT INTO blockchains(BtypeID, B_name, ConsensusID,CryptographyID) 
+                      VALUES(?,?,?,?)""",
+                    (btype, bname, cons, crypto), )
 
                 msg = 'Blockchain added to database!'
                 # Clear texboxes
                 b_type.set('')
+                b_name.delete(0, END)
                 consensus.set('')
                 crypt.set('')
             except Exception as ep:
@@ -79,11 +81,11 @@ def main():
 
             strategy = ''
             for c in checkboxes:
-               if c.get() == "Notary":
+               if c.get() == "Notary Scheme":
                   strategy += c.get()
                if c.get() == "HTLC":
                   strategy += c.get()
-               if c.get() == "Relay":
+               if c.get() == "Relay/Sidechain":
                   strategy += c.get()
 
             msg = ''
@@ -136,17 +138,19 @@ def main():
             tree_scroll.config(command=tree.yview)
 
             # Define Columns
-            tree['columns'] = ("ID", "Blockchain Type", "Consensus", "Cryptography")
+            tree['columns'] = ("ID", "Name", "Blockchain Type", "Consensus", "Cryptography")
 
             # Format Colums
             tree.column("#0", width=0, stretch=NO)
             tree.column("ID", width=100, anchor=CENTER)
+            tree.column("Name", width=100, anchor=CENTER)
             tree.column("Blockchain Type", anchor=CENTER, width=140)
             tree.column("Consensus", anchor=CENTER, width=140)
             tree.column("Cryptography", anchor=CENTER, width=100)
 
             # Column Heading
             tree.heading("ID", text="ID", anchor=CENTER)
+            tree.heading("Name", text = "Name", anchor=CENTER)
             tree.heading("Blockchain Type", text="Blockchain Type", anchor=CENTER)
             tree.heading("Consensus", text="Consensus", anchor=CENTER)
             tree.heading("Cryptography", text="Cryptography", anchor=CENTER)
@@ -160,18 +164,18 @@ def main():
             counter = 0
 
             # Query the database
-            cursor.execute("SELECT *, oid from blockchains")
+            cursor.execute("SELECT *,oid from blockchains")
             data = cursor.fetchall()
 
             # Show records
             for record in data:
                 if counter % 2 == 0:
                     tree.insert(parent='', index='end', iid=counter, text='',
-                                values=(record[3], record[0], record[1], record[2]),
+                                values=(record[0], record[1], record[3], record[2], record[4]),
                                 tags=('evenrow',))
                 else:
                     tree.insert(parent='', index='end', iid=counter, text='',
-                                values=(record[3], record[0], record[1], record[2]),
+                                values=(record[0], record[1], record[3], record[2], record[4]),
                                 tags=('oddrow',))
                 # increment counter
                 counter += 1
@@ -193,11 +197,12 @@ def main():
             v1 = var1.get()
             v2 = var2.get()
             v3 = var3.get()
+            print(v1)
 
             i = 0
-            if v1 == "Notary": i = i + 1
-            if v2 == "HTLC": i = i + 1
-            if v3 == "Relay": i = i + 1
+            if v1 == 'Notary Scheme': i = i + 1
+            if v2 == 'HTLC': i = i + 1
+            if v3 == 'Relay/Sidechain': i = i + 1
 
             if (i == 1):
                 submitInteroperability_button['state'] = NORMAL
@@ -227,47 +232,69 @@ def main():
 
             # Create table for blockchains
             cursor.execute(""" CREATE TABLE IF NOT EXISTS blockchains (
-                        b_type text,
-                        consensus_type text,
-                        cryptography_type BOOLEAN NOT NULL)""")
+                        BlockchainID INTEGER PRIMARY KEY,
+                        B_name text NOT NULL,
+                        ConsensusID text NOT NULL,
+                        BtypeID text NOT NULL,
+                        CryptographyID BOOLEAN NOT NULL,
+                        FOREIGN KEY (BtypeID) REFERENCES btype (BtypeID),
+                        FOREIGN KEY (CryptographyID) REFERENCES cryptography (CryptographyID)
+                        FOREIGN KEY (ConsensusID) REFERENCES consensus (ConsensusID))""")
 
             # Create table for blockchain type
-            cursor.execute(""" CREATE TABLE IF NOT EXISTS blockchainType (
-                        id integer PRIMARY KEY UNIQUE NOT NULL, 
-                        blockchain_type text)""")
+            cursor.execute(""" CREATE TABLE IF NOT EXISTS btype (
+                        BtypeID INTEGER PRIMARY KEY, 
+                        Btype_name text)""")
 
             # Create table for consensus
             cursor.execute(""" CREATE TABLE IF NOT EXISTS consensus (
-                           blockchain_id integer,
-                           consensus_name text NOT NULL,
-                           FOREIGN KEY (blockchain_id) REFERENCES blockchainType (id))""")
+                           ConsensusID INTEGER PRIMARY KEY,
+                           Consensus_name text NOT NULL,
+                           BtypeID INTEGER,
+                           FOREIGN KEY (BtypeID) REFERENCES btype (BtypeID))""")
 
             # Create table for cryptography
             cursor.execute("""CREATE TABLE IF NOT EXISTS cryptography(
-                            bol_cryptography BOOLEAN NOT NULL)""")
+                            CryptographyID INTEGER PRIMARY KEY,
+                            Bol_cryptography BOOLEAN NOT NULL)""")
+
+            # Create table for strategy
+            cursor.execute("""CREATE TABLE IF NOT EXISTS strategy(
+                            StrategyID INTEGER PRIMARY KEY,
+                            Strategy_name NOT NULL)""")
 
             # Create table for interoperability
-            cursor.execute("""CREATE TABLE IF NOT EXISTS interoperability(
-                        blockchain_id INTEGER,
-                        first_blockchain text,
-                        second_blockchain text, 
-                        strategy_type text,
-                        FOREIGN KEY (blockchain_id) REFERENCES blockchains(oid))""")
+            #cursor.execute("""CREATE TABLE IF NOT EXISTS interoperability(
+             #           interoperabilityID PRIMARY KEY,
+              #          blockchain_id INTEGER,
+               #         first_blockchain text,
+                #        second_blockchain text,
+                 #       strategy_ID text,
+                  #      FOREIGN KEY (blockchain_id) REFERENCES blockchains(blockchainID),
+                   #     FOREIGN KEY (strategy_ID) REFERENCES blockchains(strategyID))""")
 
             # Data list
             blockchain_type = [(1, 'Public Blockchain'),
                                (2, 'Private Blockchain')]
 
-            consenus_type = [(1, 'Proof-of-Work'),
-                             (1, 'Proof-of-Stake'),
-                             (2, 'POF')]
+            consensus_type = [(1, 'Proof-of-Work', 1),
+                             (2, 'Proof-of-Stake', 1),
+                             (3, 'POF', 2)]
+
+            strategy_type = [(1, 'Notary Scheme'),
+                             (2, 'HTLC'),
+                             (3, 'Relay/Sidechain')]
 
             # Insert data to database
-            cursor.executemany('INSERT OR IGNORE INTO blockchainType VALUES(?,?)', blockchain_type)
-            cursor.executemany('INSERT OR IGNORE INTO consensus VALUES(?,?)', consenus_type)
+            cursor.executemany('INSERT OR IGNORE INTO btype VALUES(?,?)', blockchain_type)
+            cursor.executemany('INSERT OR IGNORE INTO consensus VALUES(?,?,?)', consensus_type)
 
-            cursor.execute('INSERT OR IGNORE INTO cryptography VALUES(TRUE)')
-            cursor.execute('INSERT OR IGNORE INTO cryptography VALUES(FALSE)')
+            cursor.execute('INSERT OR IGNORE INTO cryptography VALUES(NULL,TRUE)')
+            cursor.execute('INSERT OR IGNORE INTO cryptography VALUES(NULL,FALSE)')
+
+            cursor.executemany('INSERT OR IGNORE INTO strategy VALUES(?,?)', strategy_type)
+
+
 
             # Commit Changes and Close connection
             conn.commit()
@@ -288,29 +315,29 @@ def main():
 
         # Get data from database
         query1 = cursor.execute(
-            """SELECT DISTINCT blockchain_type 
-               FROM blockchainType""")
+            """SELECT DISTINCT Btype_name 
+               FROM btype""")
         # store data in list
         blockchainList = [b for b, in query1]
 
         publicQuery2 = cursor.execute(
-            """SELECT DISTINCT consensus_name 
-               FROM blockchainType,consensus 
-                  WHERE blockchain_id == blockchainType.id 
-                     AND blockchainType.id == 1""")
+            """SELECT DISTINCT Consensus_name 
+               FROM btype,consensus 
+                  WHERE consensus.BtypeID == btype.BtypeID
+                     AND btype.BtypeID == 1""")
         # store data in list
         consensusPublicList = [c for c, in publicQuery2]
 
         privateQuery2 = cursor.execute(
             """SELECT DISTINCT consensus_name 
-               FROM consensus, blockchainType 
-                     WHERE blockchain_id == blockchainType.id 
-                           AND blockchain_id == 2""")
+               FROM consensus, btype 
+                     WHERE consensus.BtypeID == btype.BtypeID
+                     AND btype.BtypeID == 2""")
         # store data in list
         consensusPrivateList = [i for i, in privateQuery2]
 
         cryptoQuery = cursor.execute(
-            """SELECT DISTINCT bol_cryptography
+            """SELECT DISTINCT Bol_cryptography
                FROM cryptography""")
         # store data in list
         cryptoList = [b for b, in cryptoQuery]
@@ -322,19 +349,24 @@ def main():
         # binding the combobox
         b_type.bind("<<ComboboxSelected>>", pick_consensus)
 
+        b_name = ttk.Entry(tab1, text= 'Name')
+        b_name.grid(row=1, column=1, padx=20, pady=10)
+
         consensus = ttk.Combobox(tab1, state="readonly", textvariable=type2, width=20, values=[" "])
-        consensus.grid(row=1, column=1, padx=20, pady=10)
+        consensus.grid(row=2, column=1, padx=20, pady=10)
 
         crypt = ttk.Combobox(tab1, state="readonly", textvariable=type3, width=20, values=trueOrFalse)
-        crypt.grid(row=2, column=1, padx=20, pady=10)
+        crypt.grid(row=3, column=1, padx=20, pady=10)
 
         # Textbox label
         b_type_label = Label(tab1, text="Blockchain Type")
         b_type_label.grid(row=0, column=0)
+        b_name_label = Label(tab1, text="Name")
+        b_name_label.grid(row=1, column=0)
         consensus_label = Label(tab1, text="Consensus")
-        consensus_label.grid(row=1, column=0)
+        consensus_label.grid(row=2, column=0)
         crypt_label = Label(tab1, text="Cryptography")
-        crypt_label.grid(row=2, column=0)
+        crypt_label.grid(row=3, column=0)
 
         # Submit Button
         submit_button = Button(tab1, text="Add blockchain to database", command=submitBlockchain)
@@ -355,10 +387,10 @@ def main():
 
         # Combobox
         options = []
-        cursor.execute("SELECT b_type,consensus_type from blockchains")
+        cursor.execute("SELECT B_name from blockchains")
         records = cursor.fetchall()
         for i in records:
-            options.append(str(i[0]) + " - " + i[1])
+            options.append(i[0])
 
         blockchain1combo_type = ttk.Combobox(tab2, state="readonly", textvariable=block1, width=30, values=options)
         blockchain1combo_type.grid(row=0, column=1, padx=20, pady=10)
@@ -366,14 +398,17 @@ def main():
         blockchain2combo_type = ttk.Combobox(tab2, state="readonly", textvariable=block2, width=30, values=options)
         blockchain2combo_type.grid(row=1, column=1, padx=20, pady=10)
 
+        cursor.execute("SELECT * FROM strategy")
+        strategy_data = cursor.fetchall()
+
         # Textbox
-        notary = Checkbutton(tab2, text="Notary Scheme", variable=var1, onvalue="Notary", command=varUpdate).grid(row=2,
+        htlc = Checkbutton(tab2, text="HTLC", variable=var2, onvalue=strategy_data[1][1], command=varUpdate).grid(row=2, column=1,
+                                                                                                     pady=10)
+        notary = Checkbutton(tab2, text="Notary Scheme", variable=var1, onvalue=strategy_data[0][1], command=varUpdate).grid(row=2,
                                                                                                                   column=0,
                                                                                                                   pady=10,
                                                                                                                   padx=20)
-        htlc = Checkbutton(tab2, text="HTLC", variable=var2, onvalue="HTLC", command=varUpdate).grid(row=2, column=1,
-                                                                                                     pady=10)
-        relay = Checkbutton(tab2, text="Relay/Sidechain", onvalue="Relay", variable=var3, command=varUpdate).grid(row=2,
+        relay = Checkbutton(tab2, text="Relay/Sidechain", onvalue=strategy_data[2][1], variable=var3, command=varUpdate).grid(row=2,
                                                                                                                   column=3,
                                                                                                                   pady=10)
 
