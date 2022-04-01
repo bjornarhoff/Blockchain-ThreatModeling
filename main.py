@@ -71,7 +71,7 @@ def main():
         # Submit interoperable blockchain to database
         def submitInteroperability():
             conn = sqlite3.connect('blockchain_book.db')
-            c = conn.cursor()
+            cursor = conn.cursor()
 
             btype1 = block1.get()
             btype2 = block2.get()
@@ -93,7 +93,7 @@ def main():
             params = (btype1, btype2, strategy)
 
             try:
-                c.execute(query, params)
+                cursor.execute(query, params,)
 
                 msg = 'Interoperability created!'
                 # Clear texboxes
