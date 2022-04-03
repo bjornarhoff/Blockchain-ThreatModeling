@@ -337,7 +337,7 @@ def main():
                 tree_frame2.destroy()
 
             hide_threats = Button(tab2, text="Hide threats", command=hideThreats)
-            hide_threats.grid(row=7, column=2, columnspan=4, pady=10, ipadx=100)
+            hide_threats.grid(row=7, column=0, columnspan=4, pady=10, ipadx=100)
 
             # Commit Changes and Close connection
             conn.commit()
@@ -377,6 +377,11 @@ def main():
         def update_combos(e):
             blockchain1combo_type['values'] = [x for x in options if x != blockchain2combo_type.get()]
             blockchain2combo_type['values'] = [x for x in options if x != blockchain1combo_type.get()]
+
+            if blockchain1combo_type['values'] == '' or blockchain2combo_type['values'] == '':
+                show_threats_button['state'] = DISABLED
+            else:
+                show_threats_button['state'] = NORMAL
 
         def databaseConnection():
             # Database connection
@@ -604,6 +609,7 @@ def main():
         blockchain1combo_type.bind("<<ComboboxSelected>>", update_combos)
         blockchain2combo_type = ttk.Combobox(tab2, state="readonly", textvariable=block2, width=30, values=options)
         blockchain2combo_type.grid(row=1, column=1, padx=20, pady=10)
+        blockchain2combo_type.bind("<<ComboboxSelected>>", update_combos)
 
         cursor.execute("SELECT * FROM strategy")
         strategy_data = cursor.fetchall()
@@ -626,13 +632,12 @@ def main():
         blockchain2_type.grid(row=1, column=0)
 
         # Submit Button
-        submitInteroperability_button = Button(tab2, text="Create interoperability", command=submitInteroperability,
-                                               state=DISABLED)
-        submitInteroperability_button.grid(row=6, column=0, columnspan=4, pady=10, ipadx=100)
+        #submitInteroperability_button = Button(tab2, text="Create interoperability", command=submitInteroperability,state=DISABLED)
+        #submitInteroperability_button.grid(row=6, column=0, columnspan=4, pady=10, ipadx=100)
 
         # Submit Button
-        show_threats_button = Button(tab2, text="Show threats", command=showThreats)
-        show_threats_button.grid(row=6, column=2, columnspan=4, pady=10, ipadx=100)
+        show_threats_button = Button(tab2, text="Show threats", command=showThreats, state=DISABLED)
+        show_threats_button.grid(row=6, column=0, columnspan=4, pady=10, ipadx=100)
 
         # Commit Changes and Close connection
         conn.commit()
