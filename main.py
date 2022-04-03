@@ -7,6 +7,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 import sqlite3
+from re import search
 
 
 def main():
@@ -116,15 +117,15 @@ def main():
 
 
 
-        # Create Query function
-        def query():
+        # Show records from database function
+        def showRecords():
             conn = sqlite3.connect('blockchain_book.db')
             cursor = conn.cursor()
             query_button['state'] = 'disable'
 
             # Treeview Frame
             tree_frame = Frame(root)
-            tree_frame.pack(pady=10)
+            tree_frame.pack(fill='x',pady=10)
 
             # Treeview Scrollbar
             tree_scroll = Scrollbar(tree_frame)
@@ -191,6 +192,159 @@ def main():
 
             hide_button = Button(tab1, text="Hide records", command=hideRecords)
             hide_button.grid(row=7, column=2, columnspan=2, pady=10, padx=10, ipadx=137)
+
+
+
+        # Show records from database function
+        def showThreats():
+            conn = sqlite3.connect('blockchain_book.db')
+            cursor = conn.cursor()
+            show_threats_button['state'] = 'disable'
+
+            bcombo1 = blockchain1combo_type.get()
+            bcombo2 = blockchain2combo_type.get()
+
+            # Query the database
+            cursor.execute(
+                """SELECT Description, Consensus_name 
+                    FROM threat,consensus 
+                    JOIN consensusThreat 
+                    ON consensusThreat.ThreatID = threat.ThreatID 
+                    AND consensusThreat.ConsensusID = consensus.ConsensusID 
+                    WHERE Consensus_name = 'Proof-of-Work' 
+                    GROUP BY Description""")
+
+            pow_data = cursor.fetchall()
+
+            # Query the database
+            cursor.execute(
+                """SELECT Description, Consensus_name 
+                    FROM threat,consensus 
+                    JOIN consensusThreat 
+                    ON consensusThreat.ThreatID = threat.ThreatID 
+                    AND consensusThreat.ConsensusID = consensus.ConsensusID 
+                    WHERE Consensus_name = 'Proof-of-Stake' 
+                    GROUP BY Description""")
+
+            pos_data = cursor.fetchall()
+
+
+            if search(pow_data[1][1], bcombo1) or search(pow_data[1][1], bcombo2):
+                # Treeview Frame 2
+                tree_frame2 = Frame(root)
+                tree_frame2.pack(expand=True,side='left')
+                # Treeview Scrollbar
+                tree_scroll2 = Scrollbar(tree_frame2)
+                tree_scroll2.pack(side=RIGHT, fill=Y)
+                # Treeview
+                tree2 = ttk.Treeview(tree_frame2, yscrollcommand=tree_scroll2.set, selectmode="extended")
+                tree2.pack()
+
+                # Scrollbar
+                tree_scroll2.config(command=tree2.yview)
+
+                # Define Columns
+                tree2['columns'] = ("Attack", "Consensus")
+
+                # Format Colums
+                tree2.column("#0", width=0, stretch=NO)
+                tree2.column("Attack", width=200, anchor=CENTER)
+                tree2.column("Consensus", width=200, anchor=CENTER)
+
+                # Column Heading
+                tree2.heading("Attack", text="Attack", anchor=CENTER)
+                tree2.heading("Consensus", text = "Consensus", anchor=CENTER)
+
+                # Clear the Treeview
+                for record in tree2.get_children():
+                    tree2.delete(record)
+
+                # Add our data to the screen
+                global counter2
+                counter2 = 0
+
+                # Show records
+                for record in pow_data:
+                    if counter2 % 2 == 0:
+                        tree2.insert(parent='', index='end', iid=counter2, text='',
+                                     values=(record[0], record[1]),
+                                     tags=('evenrow',))
+                    else:
+                        tree2.insert(parent='', index='end', iid=counter2, text='',
+                                     values=(record[0], record[1]),
+                                     tags=('oddrow',))
+                    # increment counter
+                    counter2 += 1
+            else:
+                print("Did not found proof-of-work")
+
+            if search(pos_data[1][1], bcombo2) or search(pos_data[1][1], bcombo1):
+                # Treeview Frame 1
+                tree_frame = Frame(root)
+                tree_frame.pack(expand=True, side='left')
+                # Treeview Scrollbar
+                tree_scroll = Scrollbar(tree_frame)
+                tree_scroll.pack(side=RIGHT, fill=Y)
+
+                # Treeview
+                tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, selectmode="extended")
+                tree.pack()
+
+                # Scrollbar
+                tree_scroll.config(command=tree.yview)
+
+                # Define Columns
+                tree['columns'] = ("Attack", "Consensus")
+
+                # Format Colums
+                tree.column("#0", width=0, stretch=NO)
+                tree.column("Attack", width=200, anchor=CENTER)
+                tree.column("Consensus", width=200, anchor=CENTER)
+
+                # Column Heading
+                tree.heading("Attack", text="Attack", anchor=CENTER)
+                tree.heading("Consensus", text = "Consensus", anchor=CENTER)
+
+                # Clear the Treeview
+                for record in tree.get_children():
+                    tree.delete(record)
+
+                # Add our data to the screen
+                global counter
+                counter = 0
+
+                # Show records
+                for record in pos_data:
+                    if counter % 2 == 0:
+                        tree.insert(parent='', index='end', iid=counter, text='',
+                                    values=(record[0], record[1]),
+                                    tags=('evenrow',))
+                    else:
+                        tree.insert(parent='', index='end', iid=counter, text='',
+                                    values=(record[0], record[1]),
+                                    tags=('oddrow',))
+                    # increment counter
+                    counter += 1
+                else:
+                    print("Did not found proof-of-stake")
+
+
+
+            def hideThreats():
+                hide_threats['state'] = 'disable'
+                show_threats_button['state'] = 'normal'
+                tree_frame.destroy()
+                tree_frame2.destroy()
+
+            hide_threats = Button(tab2, text="Hide threats", command=hideThreats)
+            hide_threats.grid(row=7, column=2, columnspan=4, pady=10, ipadx=100)
+
+            # Commit Changes and Close connection
+            conn.commit()
+            conn.close()
+
+
+
 
         # Function to restrict the user to select only one strategy
         def varUpdate():
@@ -263,6 +417,18 @@ def main():
                             StrategyID INTEGER PRIMARY KEY,
                             Strategy_name NOT NULL)""")
 
+            # Create table for threats
+            cursor.execute("""CREATE TABLE IF NOT EXISTS threat(
+                                       ThreatID INTEGER PRIMARY KEY,
+                                       Description NOT NULL)""")
+
+            # Create table for consensus threats
+            cursor.execute("""CREATE TABLE IF NOT EXISTS consensusThreat(
+                                            ThreatID INTEGER,
+                                            ConsensusID INTEGER,
+                                            FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID),
+                                            FOREIGN KEY (ConsensusID) REFERENCES consensus(ConsensusID))""")
+
             # Create table for interoperability
             #cursor.execute("""CREATE TABLE IF NOT EXISTS interoperability(
              #           interoperabilityID PRIMARY KEY,
@@ -279,11 +445,45 @@ def main():
 
             consensus_type = [(1, 'Proof-of-Work', 1),
                              (2, 'Proof-of-Stake', 1),
-                             (3, 'POF', 2)]
+                             (3, 'Byzantine Fault Tolerance', 2)]
 
             strategy_type = [(1, 'Notary Scheme'),
                              (2, 'HTLC'),
                              (3, 'Relay/Sidechain')]
+
+            threats = [(1, '51% attack'),
+                       (2, 'Fork problems'),
+                       (3, 'Scaling'),
+                       (4, 'Selfish mining'),
+                       (5, 'Nothing at stake'),
+                       (6, 'Consensus Delay'),
+                       (7, 'Orphaned blocks'),
+                       (8, 'Brute force attack'),
+                       (9, 'Pool hopping attack'),
+                       (10, 'Block size attack'),
+                       (11, 'Transaction reordering'),
+                       (12, 'Lack of consistency')
+                       ]
+
+            threat_consensus = [(1, 1),
+                                (1, 2),
+                                (2, 1),
+                                (2, 2),
+                                (3, 1),
+                                (4, 1),
+                                (5, 2),
+                                (6, 1),
+                                (6, 2),
+                                (7, 1),
+                                (7, 2),
+                                (8, 1),
+                                (9, 1),
+                                (10, 1),
+                                (11, 1),
+                                (11, 2),
+                                (12, 1),
+                                (12, 2)
+                                ]
 
             # Insert data to database
             cursor.executemany('INSERT OR IGNORE INTO btype VALUES(?,?)', blockchain_type)
@@ -293,6 +493,12 @@ def main():
             cursor.execute('INSERT OR IGNORE INTO cryptography VALUES(NULL,FALSE)')
 
             cursor.executemany('INSERT OR IGNORE INTO strategy VALUES(?,?)', strategy_type)
+
+            cursor.executemany('INSERT OR IGNORE INTO threat VALUES(?,?)', threats)
+            cursor.executemany('INSERT OR IGNORE INTO consensusThreat VALUES(?,?)', threat_consensus)
+
+            cursor.execute("""SELECT Description, Consensus_name FROM threat,consensus JOIN consensusThreat ON consensusThreat.ThreatID = threat.ThreatID AND consensusThreat.ConsensusID = consensus.ConsensusID WHERE Consensus_name = 'Proof-of-Stake' GROUP BY Description""")
+            print(cursor.fetchall())
 
 
 
@@ -373,7 +579,7 @@ def main():
         submit_button.grid(row=6, column=0, columnspan=2, pady=10, ipadx=100)
 
         # Query button
-        query_button = Button(tab1, text="Show records", command=query)
+        query_button = Button(tab1, text="Show records", command=showRecords)
         query_button.grid(row=7, column=0, columnspan=2, pady=10, padx=10, ipadx=137)
 
         """--------------------- TAB 2 ---------------------"""
@@ -387,10 +593,11 @@ def main():
 
         # Combobox
         options = []
-        cursor.execute("SELECT B_name from blockchains")
+        cursor.execute("SELECT B_name,ConsensusID from blockchains")
         records = cursor.fetchall()
+        print(records)
         for i in records:
-            options.append(i[0])
+            options.append(i[0] +' : ' + i[1])
 
         blockchain1combo_type = ttk.Combobox(tab2, state="readonly", textvariable=block1, width=30, values=options)
         blockchain1combo_type.grid(row=0, column=1, padx=20, pady=10)
@@ -422,6 +629,10 @@ def main():
         submitInteroperability_button = Button(tab2, text="Create interoperability", command=submitInteroperability,
                                                state=DISABLED)
         submitInteroperability_button.grid(row=6, column=0, columnspan=4, pady=10, ipadx=100)
+
+        # Submit Button
+        show_threats_button = Button(tab2, text="Show threats", command=showThreats)
+        show_threats_button.grid(row=6, column=2, columnspan=4, pady=10, ipadx=100)
 
         # Commit Changes and Close connection
         conn.commit()
