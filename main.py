@@ -377,12 +377,12 @@ def main():
         def update_combos(e):
             blockchain1combo_type['values'] = [x for x in options if x != blockchain2combo_type.get()]
             blockchain2combo_type['values'] = [x for x in options if x != blockchain1combo_type.get()]
-
-            if blockchain1combo_type['values'] == '' or blockchain2combo_type['values'] == '':
-                show_threats_button['state'] = DISABLED
-            else:
+            if (blockchain1combo_type.get() != '' and blockchain2combo_type.get() != ''):
                 show_threats_button['state'] = NORMAL
+            else:
+                show_threats_button['state'] = DISABLED
 
+                
         def databaseConnection():
             # Database connection
             conn = sqlite3.connect('blockchain_book.db', timeout=50)
