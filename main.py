@@ -7,6 +7,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 import sqlite3
+import pandas as pd
 from re import search
 
 
@@ -204,9 +205,19 @@ def main():
             bcombo1 = blockchain1combo_type.get()
             bcombo2 = blockchain2combo_type.get()
 
+            def selectItemTreeview(a):
+                curItem = tree.focus()
+                input_item = tree.item(curItem)
+                item_list = input_item.get('values')
+                url = item_list[2]
+
+                import webbrowser
+                webbrowser.open(url)
+
+
             # Query the database
             cursor.execute(
-                """SELECT Description, Consensus_name 
+                """SELECT Description, Consensus_name, URL
                     FROM threat,consensus 
                     JOIN consensusThreat 
                     ON consensusThreat.ThreatID = threat.ThreatID 
@@ -218,7 +229,7 @@ def main():
 
             # Query the database
             cursor.execute(
-                """SELECT Description, Consensus_name 
+                """SELECT Description, Consensus_name, URL
                     FROM threat,consensus 
                     JOIN consensusThreat 
                     ON consensusThreat.ThreatID = threat.ThreatID 
@@ -244,16 +255,18 @@ def main():
                 tree_scroll2.config(command=tree2.yview)
 
                 # Define Columns
-                tree2['columns'] = ("Attack", "Consensus")
+                tree2['columns'] = ("Attack", "Consensus", "URL")
 
                 # Format Colums
                 tree2.column("#0", width=0, stretch=NO)
                 tree2.column("Attack", width=200, anchor=CENTER)
                 tree2.column("Consensus", width=200, anchor=CENTER)
+                tree2.column("URL", width=200, anchor=CENTER)
 
                 # Column Heading
                 tree2.heading("Attack", text="Attack", anchor=CENTER)
                 tree2.heading("Consensus", text = "Consensus", anchor=CENTER)
+                tree2.heading("URL", text="URL", anchor=CENTER)
 
                 # Clear the Treeview
                 for record in tree2.get_children():
@@ -267,11 +280,11 @@ def main():
                 for record in pow_data:
                     if counter2 % 2 == 0:
                         tree2.insert(parent='', index='end', iid=counter2, text='',
-                                     values=(record[0], record[1]),
+                                     values=(record[0], record[1], record[2]),
                                      tags=('evenrow',))
                     else:
                         tree2.insert(parent='', index='end', iid=counter2, text='',
-                                     values=(record[0], record[1]),
+                                     values=(record[0], record[1], record[2]),
                                      tags=('oddrow',))
                     # increment counter
                     counter2 += 1
@@ -289,21 +302,24 @@ def main():
                 # Treeview
                 tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, selectmode="extended")
                 tree.pack()
+                tree.bind('<Double-1>', selectItemTreeview)
 
                 # Scrollbar
                 tree_scroll.config(command=tree.yview)
 
                 # Define Columns
-                tree['columns'] = ("Attack", "Consensus")
+                tree['columns'] = ("Attack", "Consensus", "URL")
 
                 # Format Colums
                 tree.column("#0", width=0, stretch=NO)
                 tree.column("Attack", width=200, anchor=CENTER)
                 tree.column("Consensus", width=200, anchor=CENTER)
+                tree.column("URL", width=200, anchor=CENTER)
 
                 # Column Heading
                 tree.heading("Attack", text="Attack", anchor=CENTER)
                 tree.heading("Consensus", text = "Consensus", anchor=CENTER)
+                tree.heading("URL", text="URL", anchor=CENTER)
 
                 # Clear the Treeview
                 for record in tree.get_children():
@@ -317,11 +333,11 @@ def main():
                 for record in pos_data:
                     if counter % 2 == 0:
                         tree.insert(parent='', index='end', iid=counter, text='',
-                                    values=(record[0], record[1]),
+                                    values=(record[0], record[1], record[2]),
                                     tags=('evenrow',))
                     else:
                         tree.insert(parent='', index='end', iid=counter, text='',
-                                    values=(record[0], record[1]),
+                                    values=(record[0], record[1], record[2]),
                                     tags=('oddrow',))
                     # increment counter
                     counter += 1
@@ -342,8 +358,6 @@ def main():
             # Commit Changes and Close connection
             conn.commit()
             conn.close()
-
-
 
 
         # Function to restrict the user to select only one strategy
@@ -382,7 +396,7 @@ def main():
             else:
                 show_threats_button['state'] = DISABLED
 
-                
+
         def databaseConnection():
             # Database connection
             conn = sqlite3.connect('blockchain_book.db', timeout=50)
@@ -425,7 +439,8 @@ def main():
             # Create table for threats
             cursor.execute("""CREATE TABLE IF NOT EXISTS threat(
                                        ThreatID INTEGER PRIMARY KEY,
-                                       Description NOT NULL)""")
+                                       Description NOT NULL,
+                                       URL text)""")
 
             # Create table for consensus threats
             cursor.execute("""CREATE TABLE IF NOT EXISTS consensusThreat(
@@ -444,67 +459,23 @@ def main():
                   #      FOREIGN KEY (blockchain_id) REFERENCES blockchains(blockchainID),
                    #     FOREIGN KEY (strategy_ID) REFERENCES blockchains(strategyID))""")
 
-            # Data list
-            blockchain_type = [(1, 'Public Blockchain'),
-                               (2, 'Private Blockchain')]
-
-            consensus_type = [(1, 'Proof-of-Work', 1),
-                             (2, 'Proof-of-Stake', 1),
-                             (3, 'Byzantine Fault Tolerance', 2)]
-
-            strategy_type = [(1, 'Notary Scheme'),
-                             (2, 'HTLC'),
-                             (3, 'Relay/Sidechain')]
-
-            threats = [(1, '51% attack'),
-                       (2, 'Fork problems'),
-                       (3, 'Scaling'),
-                       (4, 'Selfish mining'),
-                       (5, 'Nothing at stake'),
-                       (6, 'Consensus Delay'),
-                       (7, 'Orphaned blocks'),
-                       (8, 'Brute force attack'),
-                       (9, 'Pool hopping attack'),
-                       (10, 'Block size attack'),
-                       (11, 'Transaction reordering'),
-                       (12, 'Lack of consistency')
-                       ]
-
-            threat_consensus = [(1, 1),
-                                (1, 2),
-                                (2, 1),
-                                (2, 2),
-                                (3, 1),
-                                (4, 1),
-                                (5, 2),
-                                (6, 1),
-                                (6, 2),
-                                (7, 1),
-                                (7, 2),
-                                (8, 1),
-                                (9, 1),
-                                (10, 1),
-                                (11, 1),
-                                (11, 2),
-                                (12, 1),
-                                (12, 2)
-                                ]
-
-            # Insert data to database
-            cursor.executemany('INSERT OR IGNORE INTO btype VALUES(?,?)', blockchain_type)
-            cursor.executemany('INSERT OR IGNORE INTO consensus VALUES(?,?,?)', consensus_type)
 
             cursor.execute('INSERT OR IGNORE INTO cryptography VALUES(NULL,TRUE)')
             cursor.execute('INSERT OR IGNORE INTO cryptography VALUES(NULL,FALSE)')
 
-            cursor.executemany('INSERT OR IGNORE INTO strategy VALUES(?,?)', strategy_type)
+            # Read data from csv
+            blockchain_type = pd.read_csv('data/btype.csv', sep = ';')
+            consensus_type = pd.read_csv('data/consensus.csv', sep = ';')
+            strategy = pd.read_csv('data/strategy.csv', sep=';')
+            threats = pd.read_csv('data/threat.csv', sep=';')
+            consensus_threats = pd.read_csv('data/consensusThreat.csv', sep=';')
 
-            cursor.executemany('INSERT OR IGNORE INTO threat VALUES(?,?)', threats)
-            cursor.executemany('INSERT OR IGNORE INTO consensusThreat VALUES(?,?)', threat_consensus)
-
-            cursor.execute("""SELECT Description, Consensus_name FROM threat,consensus JOIN consensusThreat ON consensusThreat.ThreatID = threat.ThreatID AND consensusThreat.ConsensusID = consensus.ConsensusID WHERE Consensus_name = 'Proof-of-Stake' GROUP BY Description""")
-            print(cursor.fetchall())
-
+            # Insert dato to sqlite
+            blockchain_type.to_sql('btype', conn, if_exists='replace', index=False)
+            consensus_type.to_sql('consensus', conn, if_exists='replace', index=False)
+            strategy.to_sql('strategy', conn, if_exists='replace', index=False)
+            threats.to_sql('threat', conn, if_exists='replace', index=False)
+            consensus_threats.to_sql('consensusThreat', conn, if_exists='replace', index=False)
 
 
             # Commit Changes and Close connection
@@ -613,6 +584,7 @@ def main():
 
         cursor.execute("SELECT * FROM strategy")
         strategy_data = cursor.fetchall()
+        print(strategy_data)
 
         # Textbox
         htlc = Checkbutton(tab2, text="HTLC", variable=var2, onvalue=strategy_data[1][1], command=varUpdate).grid(row=2, column=1,
@@ -653,6 +625,6 @@ def main():
 if __name__ == '__main__':
     root = Tk()
     root.title("Blockchain interoperability")
-    root.geometry("1000x500")
+    root.geometry("2000x1000")
     main()
     root.mainloop()
