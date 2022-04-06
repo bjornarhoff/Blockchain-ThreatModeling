@@ -5,6 +5,7 @@
 
 from tkinter import *
 from tkinter import ttk
+import tkinter as tk
 from tkinter import messagebox
 import sqlite3
 import pandas as pd
@@ -20,10 +21,14 @@ def main():
 
     # Configure the Treeview Colors
     style.configure("Treeview",
-                    background="#D3D3D3",
+                    background="#ededed",
                     foreground="black",
                     rowheight=25,
-                    fieldbackground="#D3D3D3")
+                    fieldbackground="#ededed")
+
+    style.configure("mystyle.Treeview", highlightthickness=0, bd=0, font=('Arial', 13), rowheight=40, fieldbackground="#ededed", background="#ededed",)  # Modify the font of the body
+    style.configure("mystyle.Treeview.Heading", font=('Arial', 13, 'bold'))  # Modify the font of the headings
+    style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
 
     # Change Selected Color
     style.map('Treeview',
@@ -185,7 +190,7 @@ def main():
             # Commit Changes and Close connection
             conn.commit()
             conn.close()
-
+            # Button for hide records
             def hideRecords():
                hide_button['state'] = 'disable'
                query_button['state'] = 'normal'
@@ -196,7 +201,8 @@ def main():
 
 
 
-        # Show records from database function
+
+        # Show threats in treeview
         def showThreats():
             conn = sqlite3.connect('blockchain_book.db')
             cursor = conn.cursor()
@@ -205,14 +211,12 @@ def main():
             bcombo1 = blockchain1combo_type.get()
             bcombo2 = blockchain2combo_type.get()
 
-            def selectItemTreeview(a):
-                curItem = tree.focus()
-                input_item = tree.item(curItem)
-                item_list = input_item.get('values')
-                url = item_list[2]
-
-                import webbrowser
-                webbrowser.open(url)
+            def url_collect(e):
+                curItem = htree.focus()
+                threat_url = ''
+                if (htree.item(curItem)['values'] != ''):
+                    threat_url = htree.item(curItem)['values'][0]  # collect selected row id
+                    print(threat_url)
 
 
             # Query the database
@@ -238,6 +242,127 @@ def main():
                     GROUP BY Description""")
 
             pos_data = cursor.fetchall()
+
+
+            # Create frame for treeview
+            treeview = Frame(root)
+            treeview.pack(expand=True, anchor='c')
+            # Label Heading
+            heading_lbl = Label(treeview,
+                                text="Hierarchical Threats Data",
+                                fg="black",
+                                font="Arial 15 bold").pack()
+            # Treeview Scrollbar
+            scroll = Scrollbar(treeview)
+            scroll.pack(side=RIGHT, fill=Y)
+
+            # Treeview
+            htree = ttk.Treeview(treeview, yscrollcommand=scroll.set, height=15,selectmode="browse", style="mystyle.Treeview", columns=("url"))
+            htree.pack(expand=True)
+            htree.bind("<<TreeviewSelect>>", url_collect)
+            # Scrollbar
+            scroll.config(command=htree.yview)
+            # Clear the Treeview
+            for record in htree.get_children():
+                htree.delete(record)
+
+            htree.heading('#0', text='Threats Categorized', anchor='c')
+            htree.heading('url', text='URL', anchor='c')
+
+            # adding data
+            htree.insert('', END, text='Consensus', iid=0, open=False)
+            htree.insert('', END, text='Network', iid=1, open=False)
+            htree.insert('', END, text='Transaction', iid=2, open=False)
+            htree.insert('', END, text='Block Creation', iid=3, open=False)
+            htree.insert('', END, text='Human error/Code Exploiting', iid=4, open=False)
+            htree.insert('', END, text='Interoperability', iid=5, open=False)
+
+            # adding children of first node
+            htree.insert('', tk.END, text='Proof-of-work', iid=6, open=False)
+            htree.insert('', tk.END, text='Proof-of-stake', iid=7, open=False)
+            htree.move(6,0,1)
+            htree.move(7,0,2)
+
+            # ID counter to display hierarchical data
+            id_counter = 8
+            # Show records
+            for pow in pow_data:
+                if (pow != ''):
+                    htree.insert(parent=6, index='end', iid=id_counter, text=(pow[0]),values=(pow[2]))
+                    id_counter += 1
+                else:
+                    print("Did not found proof-of-work data")
+
+
+            # Show records
+            for pos in pos_data:
+                if (pos != ''):
+                    htree.insert(parent=7, index='end', iid=id_counter, text=(pos[0]),values=(pos[2]))
+                    id_counter += 1
+                else:
+                    print("Did not found proof-of-stake data ")
+
+            # Hide threats
+            def hideThreats():
+                hide_threats['state'] = 'disable'
+                show_threats_button['state'] = 'normal'
+                treeview.destroy()
+
+            # Button for hiding threat treeview
+            hide_threats = Button(tab2, text="Hide threats", command=hideThreats)
+            hide_threats.grid(row=7, column=0, columnspan=4, pady=10, ipadx=100)
+
+            # Commit Changes and Close connection
+            conn.commit()
+            conn.close()
+
+
+        """
+        # Show records from database function
+        def showThreats():
+            conn = sqlite3.connect('blockchain_book.db')
+            cursor = conn.cursor()
+            show_threats_button['state'] = 'disable'
+
+            bcombo1 = blockchain1combo_type.get()
+            bcombo2 = blockchain2combo_type.get()
+
+            def selectItemTreeview(a):
+                curItem = tree.focus()
+                input_item = tree.item(curItem)
+                item_list = input_item.get('values')
+                url = item_list[2]
+
+                import webbrowser
+                webbrowser.open(url)
+
+
+            # Query the database
+            cursor.execute(
+                SELECT Description, Consensus_name, URL
+                    FROM threat,consensus 
+                    JOIN consensusThreat 
+                    ON consensusThreat.ThreatID = threat.ThreatID 
+                    AND consensusThreat.ConsensusID = consensus.ConsensusID 
+                    WHERE Consensus_name = 'Proof-of-Work' 
+                    GROUP BY Description)
+
+            pow_data = cursor.fetchall()
+
+            # Query the database
+            cursor.execute(
+                SELECT Description, Consensus_name, URL
+                    FROM threat,consensus 
+                    JOIN consensusThreat 
+                    ON consensusThreat.ThreatID = threat.ThreatID 
+                    AND consensusThreat.ConsensusID = consensus.ConsensusID 
+                    WHERE Consensus_name = 'Proof-of-Stake' 
+                    GROUP BY Description)
+
+            pos_data = cursor.fetchall()
+
+
+
 
 
             if search(pow_data[1][1], bcombo1) or search(pow_data[1][1], bcombo2):
@@ -358,6 +483,7 @@ def main():
             # Commit Changes and Close connection
             conn.commit()
             conn.close()
+            """
 
 
         # Function to restrict the user to select only one strategy
@@ -602,10 +728,6 @@ def main():
         blockchain1_type.grid(row=0, column=0)
         blockchain2_type = Label(tab2, text="Blockchain B")
         blockchain2_type.grid(row=1, column=0)
-
-        # Submit Button
-        #submitInteroperability_button = Button(tab2, text="Create interoperability", command=submitInteroperability,state=DISABLED)
-        #submitInteroperability_button.grid(row=6, column=0, columnspan=4, pady=10, ipadx=100)
 
         # Submit Button
         show_threats_button = Button(tab2, text="Show threats", command=showThreats, state=DISABLED)
