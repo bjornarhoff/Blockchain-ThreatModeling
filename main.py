@@ -335,6 +335,16 @@ def main():
                 print("Input doesnt match proof of stake ")
 
 
+            # Show records
+            for int in interoperability_data:
+                print(int)
+                for j in int:
+                    print(j)
+                    if (j == strategy):
+                        htree.insert(parent=5, index='end', iid=id_counter, text=(int[0]), values=(int[2]))
+                        id_counter += 1
+
+
             # Hide threats
             def hideThreats():
                 hide_threats['state'] = 'disable'
