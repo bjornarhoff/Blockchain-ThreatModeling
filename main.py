@@ -584,10 +584,6 @@ def main():
         def update_combos(e):
             blockchain1combo_type['values'] = [x for x in options if x != blockchain2combo_type.get()]
             blockchain2combo_type['values'] = [x for x in options if x != blockchain1combo_type.get()]
-            #if (blockchain1combo_type.get() != '' and blockchain2combo_type.get() != ''):
-             #   show_threats_button['state'] = NORMAL
-            #else:
-             #   show_threats_button['state'] = DISABLED
 
 
         def databaseConnection():
@@ -648,15 +644,6 @@ def main():
                                                 StrategyID INTEGER,
                                                 FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID),
                                                 FOREIGN KEY (StrategyID) REFERENCES strategy(StrategyID))""")
-            # Create table for interoperability
-            #cursor.execute("""CREATE TABLE IF NOT EXISTS interoperability(
-             #           interoperabilityID PRIMARY KEY,
-              #          blockchain_id INTEGER,
-               #         first_blockchain text,
-                #        second_blockchain text,
-                 #       strategy_ID text,
-                  #      FOREIGN KEY (blockchain_id) REFERENCES blockchains(blockchainID),
-                   #     FOREIGN KEY (strategy_ID) REFERENCES blockchains(strategyID))""")
 
 
             cursor.execute('INSERT OR IGNORE INTO cryptography VALUES(NULL,TRUE)')
