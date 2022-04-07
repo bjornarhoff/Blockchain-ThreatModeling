@@ -128,6 +128,12 @@ def main():
             conn = sqlite3.connect('blockchain_book.db')
             cursor = conn.cursor()
             query_button['state'] = 'disable'
+            submit_button['state'] = 'disable'
+            b_type['state'] = 'disable'
+            b_name.config(state=DISABLED)
+            consensus['state'] = 'disable'
+            crypt.config(state=DISABLED)
+
 
             # Treeview Frame
             tree_frame = Frame(root)
@@ -194,6 +200,11 @@ def main():
             def hideRecords():
                hide_button['state'] = 'disable'
                query_button['state'] = 'normal'
+               submit_button['state'] = 'normal'
+               b_type['state'] = 'normal'
+               b_name.config(state=NORMAL)
+               consensus['state'] = 'normal'
+               crypt.config(state=NORMAL)
                tree_frame.destroy()
 
             hide_button = Button(tab1, text="Hide records", command=hideRecords)
