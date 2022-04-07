@@ -207,9 +207,26 @@ def main():
             conn = sqlite3.connect('blockchain_book.db')
             cursor = conn.cursor()
             show_threats_button['state'] = 'disable'
+            blockchain1combo_type['state'] = 'disable'
+            blockchain2combo_type['state'] = 'disable'
+            htlc.config(state=DISABLED)
+            relay.config(state=DISABLED)
+            notary.config(state=DISABLED)
 
             bcombo1 = blockchain1combo_type.get()
             bcombo2 = blockchain2combo_type.get()
+            checkboxes = [var1, var2, var3]
+
+            strategy = ''
+            for c in checkboxes:
+               if c.get() == "Notary Scheme":
+                  strategy += c.get()
+               if c.get() == "HTLC":
+                  strategy += c.get()
+               if c.get() == "Relay/Sidechain":
+                  strategy += c.get()
+
+
 
             def url_collect(e):
                 curItem = htree.focus()
@@ -242,6 +259,16 @@ def main():
                     GROUP BY Description""")
 
             pos_data = cursor.fetchall()
+
+            # Query the database
+            cursor.execute(
+                """SELECT Description, Strategy_name, URL
+                    FROM threat,strategy 
+                    JOIN interoperabilityThreat 
+                    ON interoperabilityThreat.ThreatID = threat.ThreatID 
+                    AND interoperabilityThreat.StrategyID = strategy.StrategyID""")
+
+            interoperability_data = cursor.fetchall()
 
 
             # Create frame for treeview
@@ -307,10 +334,16 @@ def main():
             else:
                 print("Input doesnt match proof of stake ")
 
+
             # Hide threats
             def hideThreats():
                 hide_threats['state'] = 'disable'
                 show_threats_button['state'] = 'normal'
+                blockchain1combo_type['state'] = 'normal'
+                blockchain2combo_type['state'] = 'normal'
+                notary.config(state=NORMAL)
+                htlc.config(state=NORMAL)
+                relay.config(state=NORMAL)
                 treeview.destroy()
 
             # Button for hiding threat treeview
@@ -496,17 +529,16 @@ def main():
             v1 = var1.get()
             v2 = var2.get()
             v3 = var3.get()
-            print(v1)
 
             i = 0
             if v1 == 'Notary Scheme': i = i + 1
             if v2 == 'HTLC': i = i + 1
             if v3 == 'Relay/Sidechain': i = i + 1
 
-            if (i == 1):
-                submitInteroperability_button['state'] = NORMAL
+            if (blockchain1combo_type.get() != '' and blockchain2combo_type.get() != '' and i == 1):
+                show_threats_button['state'] = NORMAL
             else:
-                submitInteroperability_button['state'] = DISABLED
+                show_threats_button['state'] = DISABLED
 
 
         # Dropbown menu method based on the first input
@@ -522,10 +554,10 @@ def main():
         def update_combos(e):
             blockchain1combo_type['values'] = [x for x in options if x != blockchain2combo_type.get()]
             blockchain2combo_type['values'] = [x for x in options if x != blockchain1combo_type.get()]
-            if (blockchain1combo_type.get() != '' and blockchain2combo_type.get() != ''):
-                show_threats_button['state'] = NORMAL
-            else:
-                show_threats_button['state'] = DISABLED
+            #if (blockchain1combo_type.get() != '' and blockchain2combo_type.get() != ''):
+             #   show_threats_button['state'] = NORMAL
+            #else:
+             #   show_threats_button['state'] = DISABLED
 
 
         def databaseConnection():
@@ -580,6 +612,12 @@ def main():
                                             FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID),
                                             FOREIGN KEY (ConsensusID) REFERENCES consensus(ConsensusID))""")
 
+            # Create table for interoperability threats
+            cursor.execute("""CREATE TABLE IF NOT EXISTS interoperabilityThreat (
+                                                ThreatID INTEGER,
+                                                StrategyID INTEGER,
+                                                FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID),
+                                                FOREIGN KEY (StrategyID) REFERENCES strategy(StrategyID))""")
             # Create table for interoperability
             #cursor.execute("""CREATE TABLE IF NOT EXISTS interoperability(
              #           interoperabilityID PRIMARY KEY,
@@ -600,6 +638,7 @@ def main():
             strategy = pd.read_csv('data/strategy.csv', sep=';')
             threats = pd.read_csv('data/threat.csv', sep=';')
             consensus_threats = pd.read_csv('data/consensusThreat.csv', sep=';')
+            interoperability_threats = pd.read_csv('data/interoperabilityThreat.csv', sep =';')
 
             # Insert dato to sqlite
             blockchain_type.to_sql('btype', conn, if_exists='replace', index=False)
@@ -607,6 +646,7 @@ def main():
             strategy.to_sql('strategy', conn, if_exists='replace', index=False)
             threats.to_sql('threat', conn, if_exists='replace', index=False)
             consensus_threats.to_sql('consensusThreat', conn, if_exists='replace', index=False)
+            interoperability_threats.to_sql('interoperabilityThreat', conn, if_exists='replace', index=False)
 
 
             # Commit Changes and Close connection
@@ -702,7 +742,7 @@ def main():
         options = []
         cursor.execute("SELECT B_name,ConsensusID from blockchains")
         records = cursor.fetchall()
-        print(records)
+
         for i in records:
             options.append(i[0] +' : ' + i[1])
 
@@ -715,18 +755,16 @@ def main():
 
         cursor.execute("SELECT * FROM strategy")
         strategy_data = cursor.fetchall()
-        print(strategy_data)
 
-        # Textbox
-        htlc = Checkbutton(tab2, text="HTLC", variable=var2, onvalue=strategy_data[1][1], command=varUpdate).grid(row=2, column=1,
-                                                                                                     pady=10)
-        notary = Checkbutton(tab2, text="Notary Scheme", variable=var1, onvalue=strategy_data[0][1], command=varUpdate).grid(row=2,
-                                                                                                                  column=0,
-                                                                                                                  pady=10,
-                                                                                                                  padx=20)
-        relay = Checkbutton(tab2, text="Relay/Sidechain", onvalue=strategy_data[2][1], variable=var3, command=varUpdate).grid(row=2,
-                                                                                                                  column=3,
-                                                                                                                  pady=10)
+        # Checkbutton
+        htlc = Checkbutton(tab2, text="HTLC", variable=var2, onvalue=strategy_data[1][1], command=varUpdate)
+        htlc.grid(row=2, column=1,pady=10)
+
+        notary = Checkbutton(tab2, text="Notary Scheme", variable=var1, onvalue=strategy_data[0][1], command=varUpdate)
+        notary.grid(row=2,column=0,pady=10,padx=20)
+
+        relay = Checkbutton(tab2, text="Relay/Sidechain", onvalue=strategy_data[2][1], variable=var3, command=varUpdate)
+        relay.grid(row=2,column=3,pady=10)
 
         # Textbox label
         blockchain1_type = Label(tab2, text="Blockchain A")

@@ -11,3 +11,19 @@ ThreatID;Description;URL
 10;Block size attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
 11;Transaction reordering;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
 12;Lack of Consistency;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+13;Wormhole attack;
+14;Collusion attack;
+15;Denial of service in atomic swaps;
+16;Asset locking;
+17;Loss of funds in atomic swaps;
+18;Double spending attack;
+19;No transaction finality;
+20;Timing attack;
+21;Different signature algorithms;
+22;Single point of failure;
+23;Private key attack;
+24;Sybil attack;
+25;Eclipse attack;
+26;Denial of service attack;
+27;No liveness;
+28;Fraud-proof attack;
