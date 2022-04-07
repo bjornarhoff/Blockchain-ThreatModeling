@@ -322,7 +322,7 @@ def main():
             htree.insert('', END, text='Transaction', iid=2, open=False)
             htree.insert('', END, text='Block Creation', iid=3, open=False)
             htree.insert('', END, text='Human error/Code Exploiting', iid=4, open=False)
-            htree.insert('', END, text='Interoperability', iid=5, open=False)
+            htree.insert('', END, text='Interoperability' + ': '+ strategy, iid=5, open=False)
 
             # adding children of first node
             htree.insert('', tk.END, text='Proof-of-work', iid=6, open=False)
