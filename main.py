@@ -26,7 +26,7 @@ def main():
                     rowheight=25,
                     fieldbackground="#ededed")
 
-    style.configure("mystyle.Treeview", highlightthickness=0, bd=0, font=('Arial', 13), rowheight=40, fieldbackground="#ededed", background="#ededed",)  # Modify the font of the body
+    style.configure("mystyle.Treeview", highlightthickness=0, bd=0, font=('Arial', 13), rowheight=40, fieldbackground="#ededed", background="#ededed")  # Modify the font of the body
     style.configure("mystyle.Treeview.Heading", font=('Arial', 13, 'bold'))  # Modify the font of the headings
     style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
 
@@ -233,7 +233,8 @@ def main():
                 threat_url = ''
                 if (htree.item(curItem)['values'] != ''):
                     threat_url = htree.item(curItem)['values'][0]  # collect selected row id
-                    print(threat_url)
+                    import webbrowser
+                    webbrowser.open(threat_url)
 
 
             # Query the database
@@ -279,6 +280,11 @@ def main():
                             text="Hierarchical Threats Data",
                             fg="black",
                             font="Arial 15 bold").pack()
+            Label(treeview,
+                            text="Double click to get more information about the threat",
+                            fg="black",
+                            font="Arial 12 bold",
+                            pady= 5).pack()
             # Treeview Scrollbar
             scroll = Scrollbar(treeview)
             scroll.pack(side=RIGHT, fill=Y)
@@ -286,15 +292,18 @@ def main():
             # Treeview
             htree = ttk.Treeview(treeview, yscrollcommand=scroll.set, height=15,selectmode="browse", style="mystyle.Treeview", columns=("url"))
             htree.pack(expand=True)
-            htree.bind("<<TreeviewSelect>>", url_collect)
+            htree.bind("<Double-1>", url_collect)
             # Scrollbar
             scroll.config(command=htree.yview)
             # Clear the Treeview
             for record in htree.get_children():
                 htree.delete(record)
 
+
             htree.heading('#0', text='Threats Categorized', anchor='c')
+            htree.column('#0', width=350)
             htree.heading('url', text='URL', anchor='c')
+            htree.column('url', width=300)
 
             # adding data
             htree.insert('', END, text='Consensus', iid=0, open=False)
@@ -307,11 +316,13 @@ def main():
             # adding children of first node
             htree.insert('', tk.END, text='Proof-of-work', iid=6, open=False)
             htree.insert('', tk.END, text='Proof-of-stake', iid=7, open=False)
+            htree.insert('', tk.END, text='Practical Byzantine Fault Tolerance', iid=8, open=False)
             htree.move(6,0,1)
             htree.move(7,0,2)
+            htree.move(8, 0, 3)
 
             # ID counter to display hierarchical data
-            id_counter = 8
+            id_counter = 9
             if search(pow_data[1][1], bcombo1) or search(pow_data[1][1], bcombo2):
                 # Show records
                 for pow in pow_data:
@@ -337,9 +348,7 @@ def main():
 
             # Show records
             for int in interoperability_data:
-                print(int)
                 for j in int:
-                    print(j)
                     if (j == strategy):
                         htree.insert(parent=5, index='end', iid=id_counter, text=(int[0]), values=(int[2]))
                         id_counter += 1
