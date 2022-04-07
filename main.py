@@ -248,10 +248,10 @@ def main():
             treeview = Frame(root)
             treeview.pack(expand=True, anchor='c')
             # Label Heading
-            heading_lbl = Label(treeview,
-                                text="Hierarchical Threats Data",
-                                fg="black",
-                                font="Arial 15 bold").pack()
+            Label(treeview,
+                            text="Hierarchical Threats Data",
+                            fg="black",
+                            font="Arial 15 bold").pack()
             # Treeview Scrollbar
             scroll = Scrollbar(treeview)
             scroll.pack(side=RIGHT, fill=Y)
@@ -285,22 +285,27 @@ def main():
 
             # ID counter to display hierarchical data
             id_counter = 8
-            # Show records
-            for pow in pow_data:
-                if (pow != ''):
-                    htree.insert(parent=6, index='end', iid=id_counter, text=(pow[0]),values=(pow[2]))
-                    id_counter += 1
-                else:
-                    print("Did not found proof-of-work data")
+            if search(pow_data[1][1], bcombo1) or search(pow_data[1][1], bcombo2):
+                # Show records
+                for pow in pow_data:
+                    if (pow != ''):
+                        htree.insert(parent=6, index='end', iid=id_counter, text=(pow[0]),values=(pow[2]))
+                        id_counter += 1
+                    else:
+                        print("Did not found proof-of-work data")
+            else:
+                print("Input doesnt match proof of work ")
 
-
-            # Show records
-            for pos in pos_data:
-                if (pos != ''):
-                    htree.insert(parent=7, index='end', iid=id_counter, text=(pos[0]),values=(pos[2]))
-                    id_counter += 1
-                else:
-                    print("Did not found proof-of-stake data ")
+            if search(pos_data[1][1], bcombo1) or search(pos_data[1][1], bcombo2):
+                # Show records
+                for pos in pos_data:
+                    if (pos != ''):
+                        htree.insert(parent=7, index='end', iid=id_counter, text=(pos[0]),values=(pos[2]))
+                        id_counter += 1
+                    else:
+                        print("Did not found proof-of-stake data ")
+            else:
+                print("Input doesnt match proof of stake ")
 
             # Hide threats
             def hideThreats():
