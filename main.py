@@ -243,29 +243,33 @@ def main():
                 curItem = htree.focus()
                 threat_url = ''
                 if (htree.item(curItem)['values'] != ''):
-                    threat_url = htree.item(curItem)['values'][0]  # collect selected row id
+                    threat_url = htree.item(curItem)['values'][1]  # collect selected row id
                     import webbrowser
                     webbrowser.open(threat_url)
 
 
             # Query the database
             cursor.execute(
-                """SELECT Description, Consensus_name, URL
-                    FROM threat,consensus 
+                """SELECT Description, Consensus_name, URL, GROUP_CONCAT(Stride_Name) 
+                    FROM threat,consensus
                     JOIN consensusThreat 
                     ON consensusThreat.ThreatID = threat.ThreatID 
+                    JOIN strideThreat ON threat.threatID = strideThreat.ThreatID
+                    JOIN stride ON strideThreat.StrideID = stride.StrideID
                     AND consensusThreat.ConsensusID = consensus.ConsensusID 
                     WHERE Consensus_name = 'Proof-of-Work' 
                     GROUP BY Description""")
 
             pow_data = cursor.fetchall()
-
+            print(pow_data)
             # Query the database
             cursor.execute(
-                """SELECT Description, Consensus_name, URL
-                    FROM threat,consensus 
+                """SELECT Description, Consensus_name, URL, GROUP_CONCAT(Stride_Name) 
+                    FROM threat,consensus
                     JOIN consensusThreat 
                     ON consensusThreat.ThreatID = threat.ThreatID 
+                    JOIN strideThreat ON threat.threatID = strideThreat.ThreatID
+                    JOIN stride ON strideThreat.StrideID = stride.StrideID
                     AND consensusThreat.ConsensusID = consensus.ConsensusID 
                     WHERE Consensus_name = 'Proof-of-Stake' 
                     GROUP BY Description""")
@@ -301,7 +305,7 @@ def main():
             scroll.pack(side=RIGHT, fill=Y)
 
             # Treeview
-            htree = ttk.Treeview(treeview, yscrollcommand=scroll.set, height=15,selectmode="browse", style="mystyle.Treeview", columns=("url"))
+            htree = ttk.Treeview(treeview, yscrollcommand=scroll.set, height=15,selectmode="browse", style="mystyle.Treeview", columns=('STRIDE',"URL"))
             htree.pack(expand=True)
             htree.bind("<Double-1>", url_collect)
             # Scrollbar
@@ -313,8 +317,10 @@ def main():
 
             htree.heading('#0', text='Threats Categorized', anchor='c')
             htree.column('#0', width=350)
-            htree.heading('url', text='URL', anchor='c')
-            htree.column('url', width=300)
+            htree.heading('STRIDE', text='STRIDE', anchor='c')
+            htree.column('STRIDE', width=400)
+            htree.heading('URL', text='URL', anchor='c')
+            htree.column('URL', width=100)
 
             # adding data
             htree.insert('', END, text='Consensus', iid=0, open=False)
@@ -338,7 +344,7 @@ def main():
                 # Show records
                 for pow in pow_data:
                     if (pow != ''):
-                        htree.insert(parent=6, index='end', iid=id_counter, text=(pow[0]),values=(pow[2]))
+                        htree.insert(parent=6, index='end', iid=id_counter, text=(pow[0]),values=(pow[3],pow[2]))
                         id_counter += 1
                     else:
                         print("Did not found proof-of-work data")
@@ -349,7 +355,7 @@ def main():
                 # Show records
                 for pos in pos_data:
                     if (pos != ''):
-                        htree.insert(parent=7, index='end', iid=id_counter, text=(pos[0]),values=(pos[2]))
+                        htree.insert(parent=7, index='end', iid=id_counter, text=(pos[0]),values=(pos[3],pos[2]))
                         id_counter += 1
                     else:
                         print("Did not found proof-of-stake data ")
@@ -631,6 +637,18 @@ def main():
                                        Description NOT NULL,
                                        URL text)""")
 
+            # Create table for stride
+            cursor.execute("""CREATE TABLE IF NOT EXISTS stride(
+                                                   StrideID INTEGER PRIMARY KEY,
+                                                   Stride_Name text)""")
+
+            # Create table for stride threats
+            cursor.execute("""CREATE TABLE IF NOT EXISTS strideThreat(
+                                            ThreatID INTEGER,
+                                            StrideID INTEGER,
+                                            FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID),
+                                            FOREIGN KEY (StrideID) REFERENCES stride(ConsensusID))""")
+
             # Create table for consensus threats
             cursor.execute("""CREATE TABLE IF NOT EXISTS consensusThreat(
                                             ThreatID INTEGER,
@@ -656,6 +674,8 @@ def main():
             threats = pd.read_csv('data/threat.csv', sep=';')
             consensus_threats = pd.read_csv('data/consensusThreat.csv', sep=';')
             interoperability_threats = pd.read_csv('data/interoperabilityThreat.csv', sep =';')
+            stride = pd.read_csv('data/stride.csv', sep=';')
+            stride_threats = pd.read_csv('data/strideThreat.csv', sep=';')
 
             # Insert dato to sqlite
             blockchain_type.to_sql('btype', conn, if_exists='replace', index=False)
@@ -664,6 +684,8 @@ def main():
             threats.to_sql('threat', conn, if_exists='replace', index=False)
             consensus_threats.to_sql('consensusThreat', conn, if_exists='replace', index=False)
             interoperability_threats.to_sql('interoperabilityThreat', conn, if_exists='replace', index=False)
+            stride.to_sql('stride', conn, if_exists='replace', index=False)
+            stride_threats.to_sql('strideThreat', conn, if_exists='replace', index=False)
 
 
             # Commit Changes and Close connection
