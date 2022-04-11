@@ -27,3 +27,57 @@ ThreatID;Description;URL
 26;Denial of service attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
 27;No liveness;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
 28;Fraud-proof attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+29;Transaction Privacy Leakage;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+30;Flaw in Smart Contracts;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+31;Cryptography and hashing operation attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+32;Short address attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+33;Finney attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+34;Race attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+35;Vector76 attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+36;Phishing attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+37;Time jacking;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+38;Malware attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+39;Code errors;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+40;Bribe attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+41;Coin age attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+42;Prediction attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+43;Reentrancy attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+44;DDoS ;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+45;Time delay attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+46;Balance attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+47;Replay attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+48;Overflow attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+49;Cryptojacking;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+50;Liveness attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+51;Block Withholding;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+52;Vulnerable signature;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+53;Flawed key generation;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+54;Lack of address control creation;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+55;Pre-image attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+56;Transaction malleability attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+57;DAO attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+58;BGP hijacks;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+59;Ballot stuffing attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+60;Impersonation attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+61;Message spoofing attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+62;Code injection;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+63;SQL injection;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+64;Fault injection;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+65;Tampering attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+66;Man in the middle attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+67;AS-level deployment analysis;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+68;Transaction graph analysis;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+69;Refund attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+70;Wallet attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+71;Address Clustering;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+72;Network analysis;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+73;Cloning attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+74;Long range attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+75;Censorship attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+76;Quantum attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+77;Propagation delay;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+78;Exception disorder ;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+79;Reliable data source;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+80;Identifier leaks in HTLC;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+81;Sniffing;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
+82;Routing attack;https://www.sciencedirect.com/science/article/pii/S0167739X17318332
