@@ -2,7 +2,7 @@
 
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-
+import textwrap
 from tkinter import *
 from tkinter import ttk
 import tkinter as tk
@@ -26,7 +26,7 @@ def main():
                     rowheight=25,
                     fieldbackground="#ededed")
 
-    style.configure("mystyle.Treeview", highlightthickness=0, bd=0, font=('Arial', 13), rowheight=40, fieldbackground="#ededed", background="#ededed")  # Modify the font of the body
+    style.configure("mystyle.Treeview", highlightthickness=0, bd=0, font=('Arial', 13), rowheight=65, fieldbackground="#ededed", background="#ededed")  # Modify the font of the body
     style.configure("mystyle.Treeview.Heading", font=('Arial', 13, 'bold'))  # Modify the font of the headings
     style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
 
@@ -56,17 +56,20 @@ def main():
             msg = ''
 
             try:
-                cursor.execute(
-                    """INSERT INTO blockchains(BtypeID, B_name, ConsensusID,CryptographyID) 
-                      VALUES(?,?,?,?)""",
-                    (btype, bname, cons, crypto), )
+                if (btype != '' and bname != '' and cons != '' and crypto != ''):
+                    cursor.execute(
+                        """INSERT INTO blockchains(BtypeID, B_name, ConsensusID,CryptographyID) 
+                          VALUES(?,?,?,?)""",
+                        (btype, bname, cons, crypto), )
 
-                msg = 'Blockchain added to database!'
-                # Clear texboxes
-                b_type.set('')
-                b_name.delete(0, END)
-                consensus.set('')
-                crypt.set('')
+                    msg = 'Blockchain added to database!'
+                    # Clear texboxes
+                    b_type.set('')
+                    b_name.delete(0, END)
+                    consensus.set('')
+                    crypt.set('')
+                else:
+                    msg = 'Fill inn fields!'
             except Exception as ep:
                 messagebox.showerror('error', ep)
 
@@ -243,14 +246,14 @@ def main():
                 curItem = htree.focus()
                 threat_url = ''
                 if (htree.item(curItem)['values'] != ''):
-                    threat_url = htree.item(curItem)['values'][1]  # collect selected row id
+                    threat_url = htree.item(curItem)['values'][2]  # collect selected row id
                     import webbrowser
                     webbrowser.open(threat_url)
 
 
             # Query the database
             cursor.execute(
-                """SELECT Description, Consensus_name, URL, GROUP_CONCAT(Stride_Name) 
+                """SELECT Threat_Name,Description, Consensus_name, URL, GROUP_CONCAT(Stride_Name) 
                     FROM threat,consensus
                     JOIN consensusThreat 
                     ON consensusThreat.ThreatID = threat.ThreatID 
@@ -258,13 +261,13 @@ def main():
                     JOIN stride ON strideThreat.StrideID = stride.StrideID
                     AND consensusThreat.ConsensusID = consensus.ConsensusID 
                     WHERE Consensus_name = 'Proof-of-Work' 
-                    GROUP BY Description""")
+                    GROUP BY Threat_Name""")
 
             pow_data = cursor.fetchall()
-            print(pow_data)
+
             # Query the database
             cursor.execute(
-                """SELECT Description, Consensus_name, URL, GROUP_CONCAT(Stride_Name) 
+                """SELECT Threat_Name,Description, Consensus_name, URL, GROUP_CONCAT(Stride_Name) 
                     FROM threat,consensus
                     JOIN consensusThreat 
                     ON consensusThreat.ThreatID = threat.ThreatID 
@@ -272,20 +275,26 @@ def main():
                     JOIN stride ON strideThreat.StrideID = stride.StrideID
                     AND consensusThreat.ConsensusID = consensus.ConsensusID 
                     WHERE Consensus_name = 'Proof-of-Stake' 
-                    GROUP BY Description""")
+                    GROUP BY Threat_Name""")
 
             pos_data = cursor.fetchall()
 
             # Query the database
             cursor.execute(
-                """SELECT Description, Strategy_name, URL
+                """SELECT Threat_Name, Description, Strategy_name, URL, GROUP_CONCAT(Stride_Name)
                     FROM threat,strategy 
                     JOIN interoperabilityThreat 
-                    ON interoperabilityThreat.ThreatID = threat.ThreatID 
-                    AND interoperabilityThreat.StrategyID = strategy.StrategyID""")
+                    ON interoperabilityThreat.ThreatID = threat.ThreatID
+                    JOIN strideThreat ON threat.threatID = strideThreat.ThreatID
+                    JOIN stride ON strideThreat.StrideID = stride.StrideID
+                    AND interoperabilityThreat.StrategyID = strategy.StrategyID
+                    GROUP BY Threat_Name, Strategy_Name""")
 
             interoperability_data = cursor.fetchall()
 
+
+            cursor.execute("""SELECT Threat_Name FROM threat t , networkThreat n WHERE t.ThreatID == n.ThreatID """)
+            ex1 = cursor.fetchall()
 
             # Create frame for treeview
             treeview = Frame(root)
@@ -305,7 +314,7 @@ def main():
             scroll.pack(side=RIGHT, fill=Y)
 
             # Treeview
-            htree = ttk.Treeview(treeview, yscrollcommand=scroll.set, height=15,selectmode="browse", style="mystyle.Treeview", columns=('STRIDE',"URL"))
+            htree = ttk.Treeview(treeview, yscrollcommand=scroll.set, height=15,selectmode="browse", style="mystyle.Treeview",columns=('Description','STRIDE',"URL"))
             htree.pack(expand=True)
             htree.bind("<Double-1>", url_collect)
             # Scrollbar
@@ -315,12 +324,14 @@ def main():
                 htree.delete(record)
 
 
-            htree.heading('#0', text='Threats Categorized', anchor='c')
+            htree.heading('#0', text='THREATS CATEGORIZED', anchor='c')
             htree.column('#0', width=350)
+            htree.heading('Description', text='DESCRIPTION', anchor='c')
+            htree.column('Description', width=400)
             htree.heading('STRIDE', text='STRIDE', anchor='c')
             htree.column('STRIDE', width=400)
             htree.heading('URL', text='URL', anchor='c')
-            htree.column('URL', width=100)
+            htree.column('URL', width=200)
 
             # adding data
             htree.insert('', END, text='Consensus', iid=0, open=False)
@@ -340,34 +351,33 @@ def main():
 
             # ID counter to display hierarchical data
             id_counter = 9
-            if search(pow_data[1][1], bcombo1) or search(pow_data[1][1], bcombo2):
+            if search(pow_data[1][2], bcombo1) or search(pow_data[1][2], bcombo2):
                 # Show records
                 for pow in pow_data:
                     if (pow != ''):
-                        htree.insert(parent=6, index='end', iid=id_counter, text=(pow[0]),values=(pow[3],pow[2]))
+                        htree.insert(parent=6, index='end', iid=id_counter, text=(pow[0]),values=(wrap(pow[1]),pow[4],pow[3]))
                         id_counter += 1
                     else:
                         print("Did not found proof-of-work data")
             else:
                 print("Input doesnt match proof of work ")
 
-            if search(pos_data[1][1], bcombo1) or search(pos_data[1][1], bcombo2):
+            if search(pos_data[1][2], bcombo1) or search(pos_data[1][2], bcombo2):
                 # Show records
                 for pos in pos_data:
                     if (pos != ''):
-                        htree.insert(parent=7, index='end', iid=id_counter, text=(pos[0]),values=(pos[3],pos[2]))
+                        htree.insert(parent=7, index='end', iid=id_counter, text=(pos[0]),values=(wrap(pos[1]),pos[4],pos[3]))
                         id_counter += 1
                     else:
                         print("Did not found proof-of-stake data ")
             else:
                 print("Input doesnt match proof of stake ")
 
-
             # Show records
-            for int in interoperability_data:
-                for j in int:
+            for intData in interoperability_data:
+                for j in intData:
                     if (j == strategy):
-                        htree.insert(parent=5, index='end', iid=id_counter, text=(int[0]), values=(int[2]))
+                        htree.insert(parent=5, index='end', iid=id_counter, text=(intData[0]), values=(wrap(intData[1]), intData[4], intData[3]))
                         id_counter += 1
 
 
@@ -391,174 +401,6 @@ def main():
             conn.close()
 
 
-        """
-        # Show records from database function
-        def showThreats():
-            conn = sqlite3.connect('blockchain_book.db')
-            cursor = conn.cursor()
-            show_threats_button['state'] = 'disable'
-
-            bcombo1 = blockchain1combo_type.get()
-            bcombo2 = blockchain2combo_type.get()
-
-            def selectItemTreeview(a):
-                curItem = tree.focus()
-                input_item = tree.item(curItem)
-                item_list = input_item.get('values')
-                url = item_list[2]
-
-                import webbrowser
-                webbrowser.open(url)
-
-
-            # Query the database
-            cursor.execute(
-                SELECT Description, Consensus_name, URL
-                    FROM threat,consensus 
-                    JOIN consensusThreat 
-                    ON consensusThreat.ThreatID = threat.ThreatID 
-                    AND consensusThreat.ConsensusID = consensus.ConsensusID 
-                    WHERE Consensus_name = 'Proof-of-Work' 
-                    GROUP BY Description)
-
-            pow_data = cursor.fetchall()
-
-            # Query the database
-            cursor.execute(
-                SELECT Description, Consensus_name, URL
-                    FROM threat,consensus 
-                    JOIN consensusThreat 
-                    ON consensusThreat.ThreatID = threat.ThreatID 
-                    AND consensusThreat.ConsensusID = consensus.ConsensusID 
-                    WHERE Consensus_name = 'Proof-of-Stake' 
-                    GROUP BY Description)
-
-            pos_data = cursor.fetchall()
-
-
-
-
-
-            if search(pow_data[1][1], bcombo1) or search(pow_data[1][1], bcombo2):
-                # Treeview Frame 2
-                tree_frame2 = Frame(root)
-                tree_frame2.pack(expand=True,side='left')
-                # Treeview Scrollbar
-                tree_scroll2 = Scrollbar(tree_frame2)
-                tree_scroll2.pack(side=RIGHT, fill=Y)
-                # Treeview
-                tree2 = ttk.Treeview(tree_frame2, yscrollcommand=tree_scroll2.set, selectmode="extended")
-                tree2.pack()
-
-                # Scrollbar
-                tree_scroll2.config(command=tree2.yview)
-
-                # Define Columns
-                tree2['columns'] = ("Attack", "Consensus", "URL")
-
-                # Format Colums
-                tree2.column("#0", width=0, stretch=NO)
-                tree2.column("Attack", width=200, anchor=CENTER)
-                tree2.column("Consensus", width=200, anchor=CENTER)
-                tree2.column("URL", width=200, anchor=CENTER)
-
-                # Column Heading
-                tree2.heading("Attack", text="Attack", anchor=CENTER)
-                tree2.heading("Consensus", text = "Consensus", anchor=CENTER)
-                tree2.heading("URL", text="URL", anchor=CENTER)
-
-                # Clear the Treeview
-                for record in tree2.get_children():
-                    tree2.delete(record)
-
-                # Add our data to the screen
-                global counter2
-                counter2 = 0
-
-                # Show records
-                for record in pow_data:
-                    if counter2 % 2 == 0:
-                        tree2.insert(parent='', index='end', iid=counter2, text='',
-                                     values=(record[0], record[1], record[2]),
-                                     tags=('evenrow',))
-                    else:
-                        tree2.insert(parent='', index='end', iid=counter2, text='',
-                                     values=(record[0], record[1], record[2]),
-                                     tags=('oddrow',))
-                    # increment counter
-                    counter2 += 1
-            else:
-                print("Did not found proof-of-work")
-
-            if search(pos_data[1][1], bcombo2) or search(pos_data[1][1], bcombo1):
-                # Treeview Frame 1
-                tree_frame = Frame(root)
-                tree_frame.pack(expand=True, side='left')
-                # Treeview Scrollbar
-                tree_scroll = Scrollbar(tree_frame)
-                tree_scroll.pack(side=RIGHT, fill=Y)
-
-                # Treeview
-                tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, selectmode="extended")
-                tree.pack()
-                tree.bind('<Double-1>', selectItemTreeview)
-
-                # Scrollbar
-                tree_scroll.config(command=tree.yview)
-
-                # Define Columns
-                tree['columns'] = ("Attack", "Consensus", "URL")
-
-                # Format Colums
-                tree.column("#0", width=0, stretch=NO)
-                tree.column("Attack", width=200, anchor=CENTER)
-                tree.column("Consensus", width=200, anchor=CENTER)
-                tree.column("URL", width=200, anchor=CENTER)
-
-                # Column Heading
-                tree.heading("Attack", text="Attack", anchor=CENTER)
-                tree.heading("Consensus", text = "Consensus", anchor=CENTER)
-                tree.heading("URL", text="URL", anchor=CENTER)
-
-                # Clear the Treeview
-                for record in tree.get_children():
-                    tree.delete(record)
-
-                # Add our data to the screen
-                global counter
-                counter = 0
-
-                # Show records
-                for record in pos_data:
-                    if counter % 2 == 0:
-                        tree.insert(parent='', index='end', iid=counter, text='',
-                                    values=(record[0], record[1], record[2]),
-                                    tags=('evenrow',))
-                    else:
-                        tree.insert(parent='', index='end', iid=counter, text='',
-                                    values=(record[0], record[1], record[2]),
-                                    tags=('oddrow',))
-                    # increment counter
-                    counter += 1
-                else:
-                    print("Did not found proof-of-stake")
-
-
-
-            def hideThreats():
-                hide_threats['state'] = 'disable'
-                show_threats_button['state'] = 'normal'
-                tree_frame.destroy()
-                tree_frame2.destroy()
-
-            hide_threats = Button(tab2, text="Hide threats", command=hideThreats)
-            hide_threats.grid(row=7, column=0, columnspan=4, pady=10, ipadx=100)
-
-            # Commit Changes and Close connection
-            conn.commit()
-            conn.close()
-            """
-
 
         # Function to restrict the user to select only one strategy
         def varUpdate():
@@ -576,6 +418,12 @@ def main():
             else:
                 show_threats_button['state'] = DISABLED
 
+        # Function to wrap text
+        def wrap(string, lenght=60):
+            if (string != None):
+                return '\n'.join(textwrap.wrap(string, lenght))
+            else:
+                pass
 
         # Dropbown menu method based on the first input
         def pick_consensus(e):
@@ -591,7 +439,7 @@ def main():
             blockchain1combo_type['values'] = [x for x in options if x != blockchain2combo_type.get()]
             blockchain2combo_type['values'] = [x for x in options if x != blockchain1combo_type.get()]
 
-
+        # Database connection
         def databaseConnection():
             # Database connection
             conn = sqlite3.connect('blockchain_book.db', timeout=50)
@@ -634,7 +482,7 @@ def main():
             # Create table for threats
             cursor.execute("""CREATE TABLE IF NOT EXISTS threat(
                                        ThreatID INTEGER PRIMARY KEY,
-                                       Description NOT NULL,
+                                       Threat_Name NOT NULL,
                                        URL text)""")
 
             # Create table for stride
@@ -656,6 +504,22 @@ def main():
                                             FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID),
                                             FOREIGN KEY (ConsensusID) REFERENCES consensus(ConsensusID))""")
 
+            # Create table for network threats
+            cursor.execute("""CREATE TABLE IF NOT EXISTS networkThreat(
+                                                       ThreatID INTEGER,
+                                                       FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID))""")
+
+            # Create table for cryptography threats
+            cursor.execute("""CREATE TABLE IF NOT EXISTS cryptographyThreat(
+                                                                   ThreatID INTEGER,
+                                                                   FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID))""")
+
+            # Create table for application/human error threats
+            cursor.execute("""CREATE TABLE IF NOT EXISTS errorThreat(
+                                                                   ThreatID INTEGER,
+                                                                   FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID))""")
+
+
             # Create table for interoperability threats
             cursor.execute("""CREATE TABLE IF NOT EXISTS interoperabilityThreat (
                                                 ThreatID INTEGER,
@@ -676,6 +540,9 @@ def main():
             interoperability_threats = pd.read_csv('data/interoperabilityThreat.csv', sep =';')
             stride = pd.read_csv('data/stride.csv', sep=';')
             stride_threats = pd.read_csv('data/strideThreat.csv', sep=';')
+            network_threats = pd.read_csv('data/networkThreat.csv', sep=';')
+            cryptography_threats = pd.read_csv('data/cryptographyThreat.csv', sep=';')
+            error_threats = pd.read_csv('data/errorThreat.csv', sep=';')
 
             # Insert dato to sqlite
             blockchain_type.to_sql('btype', conn, if_exists='replace', index=False)
@@ -686,6 +553,9 @@ def main():
             interoperability_threats.to_sql('interoperabilityThreat', conn, if_exists='replace', index=False)
             stride.to_sql('stride', conn, if_exists='replace', index=False)
             stride_threats.to_sql('strideThreat', conn, if_exists='replace', index=False)
+            network_threats.to_sql('networkThreat', conn, if_exists='replace', index=False)
+            cryptography_threats.to_sql('cryptographyThreat', conn, if_exists='replace', index=False)
+            error_threats.to_sql('errorThreat', conn, if_exists='replace', index=False)
 
 
             # Commit Changes and Close connection
@@ -704,6 +574,7 @@ def main():
         type1 = StringVar()
         type2 = StringVar()
         type3 = StringVar()
+
 
         # Get data from database
         query1 = cursor.execute(
@@ -767,6 +638,7 @@ def main():
         # Query button
         query_button = Button(tab1, text="Show records", command=showRecords)
         query_button.grid(row=7, column=0, columnspan=2, pady=10, padx=10, ipadx=137)
+
 
         """--------------------- TAB 2 ---------------------"""
         # Variables
