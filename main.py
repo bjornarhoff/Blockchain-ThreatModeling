@@ -37,10 +37,14 @@ def main():
     # Creating tabs
     tab_control = ttk.Notebook(root)
     tab1 = Frame(tab_control)
-    tab_control.add(tab1, text="Add blockchain")
+    tab_control.add(tab1, text="Add blockchains")
 
     tab2 = Frame(tab_control)
-    tab_control.add(tab2, text="Create blockchain interoperability")
+    tab_control.add(tab2, text="Discover threats")
+    tab_control.pack(expand=1, fill="both", padx=100)
+
+    tab3 = Frame(tab_control)
+    tab_control.add(tab3, text="Add threats")
     tab_control.pack(expand=1, fill="both", padx=100)
 
     try:
@@ -81,39 +85,50 @@ def main():
             conn.close()
 
         # Submit interoperable blockchain to database
-        def submitInteroperability():
+        def submitThreat():
             conn = sqlite3.connect('blockchain_book.db')
             cursor = conn.cursor()
+            threats = pd.read_csv('data/threat.csv', sep=';')
+            last_id = threats.tail(1).ThreatID
 
-            btype1 = block1.get()
-            btype2 = block2.get()
-            checkboxes = [var1, var2, var3]
 
-            strategy = ''
-            for c in checkboxes:
-               if c.get() == "Notary Scheme":
-                  strategy += c.get()
-               if c.get() == "HTLC":
-                  strategy += c.get()
-               if c.get() == "Relay/Sidechain":
-                  strategy += c.get()
+            name_threat = t_name.get()
+            description_threat = t_description.get()
+            url_threat = t_url.get()
+            cat1 = t_category.get()
+            cat2 = t_category2.get()
+
+
+
 
             msg = ''
 
-            query = '''INSERT INTO interoperability(first_blockchain, second_blockchain,strategy_type)
-                      VALUES(?,?,?)'''
-            params = (btype1, btype2, strategy)
+
 
             try:
-                cursor.execute(query, params,)
+                new_threat = pd.DataFrame(
+                    {'ThreatID': last_id + 1, 'Threat_Name': name_threat, 'Description': description_threat,
+                     'URL': url_threat})
+                df_full = pd.concat([threats, new_threat])
+                last_id = df_full.tail(1).ThreatID
 
-                msg = 'Interoperability created!'
+                if (cat1 == 'Consensus'):
+                    consensusThreat = pd.read_csv('data/consensusThreat.csv', sep=';')
+                    if (cat2 == 'Proof-of-Work'):
+                        new_consensus_threat = pd.DataFrame({'ThreatID': last_id, 'ConsensusID': 1})
+                        consensus_updated = pd.concat([consensusThreat, new_consensus_threat])
+
+                    if (cat2 == 'Proof-of-Stake'):
+                        new_consensus_threat = pd.DataFrame({'ThreatID': last_id, 'ConsensusID': 2})
+                        consensus_updated = pd.concat([consensusThreat, new_consensus_threat])
+
+                df_full.to_csv('data/threat.csv', sep=';', index=False)
+                consensus_updated.to_csv('data/consensusThreat.csv', sep=';', index=False)
+
+
+                msg = 'Threat created!'
                 # Clear texboxes
-                blockchain1combo_type.set('')
-                blockchain2combo_type.set('')
-                var1.set(0)
-                var2.set(0)
-                var3.set(0)
+
             except Exception as ep:
                 messagebox.showerror('error', ep)
 
@@ -439,7 +454,34 @@ def main():
             blockchain1combo_type['values'] = [x for x in options if x != blockchain2combo_type.get()]
             blockchain2combo_type['values'] = [x for x in options if x != blockchain1combo_type.get()]
 
-        # Database connection
+
+        def select_using_text(e):
+            conn = sqlite3.connect('blockchain_book.db', timeout=50)
+            cursor = conn.cursor()
+            category_input = category1.get()
+
+            sql = ''
+            t_category2.set('')
+            if (category_input == 'Consensus'):
+                t_category2.config(state='enabled')
+                sql = 'SELECT Consensus_name FROM consensus'
+
+            if (category_input == 'Network'):
+                t_category2.config(state='enabled')
+                sql=''
+
+            if (category_input == 'Cryptography'):
+                t_category2.config(state='disabled')
+                sql=''
+
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            t_category2['values'] = result
+
+
+
+
+            # Database connection
         def databaseConnection():
             # Database connection
             conn = sqlite3.connect('blockchain_book.db', timeout=50)
@@ -481,7 +523,7 @@ def main():
 
             # Create table for threats
             cursor.execute("""CREATE TABLE IF NOT EXISTS threat(
-                                       ThreatID INTEGER PRIMARY KEY,
+                                       ThreatID INTEGER PRIMARY KEY NOT NULL UNIQUE,
                                        Threat_Name NOT NULL,
                                        URL text)""")
 
@@ -686,6 +728,55 @@ def main():
         # Submit Button
         show_threats_button = Button(tab2, text="Show threats", command=showThreats, state=DISABLED)
         show_threats_button.grid(row=6, column=0, columnspan=4, pady=10, ipadx=100)
+
+
+
+        """--------------------- TAB 3 ---------------------"""
+        category_options = ['Consensus',
+                            'Network',
+                            'Cryptography',
+                            'Human Error',
+                            'Transaction',
+                            'Block creation']
+
+        category1 = StringVar()
+        category2 = StringVar()
+
+        t_name = ttk.Entry(tab3, text='Name')
+        t_name.grid(row=0, column=1, padx=20, pady=10)
+        t_description = ttk.Entry(tab3, text='Description')
+        t_description.grid(row=1, column=1, padx=20, pady=10)
+        t_url = ttk.Entry(tab3, text='Url')
+        t_url.grid(row=2, column=1, padx=20, pady=10)
+
+        t_category = ttk.Combobox(tab3, state="readonly", textvariable=category1, width=15, values=category_options)
+        t_category.grid(row=3, column=1, padx=10, pady=10)
+        t_category.bind("<<ComboboxSelected>>", select_using_text)
+        t_category2 = ttk.Combobox(tab3, state="disabled", textvariable=category2, width=15,
+                                   values=category_options)
+        t_category2.grid(row=4, column=1, padx=10, pady=10)
+
+
+        # Textbox label
+        threat_name = Label(tab3, text="Name")
+        threat_name.grid(row=0, column=0)
+        threat_description = Label(tab3, text="Description")
+        threat_description.grid(row=1, column=0)
+        threat_url = Label(tab3, text="URL")
+        threat_url.grid(row=2, column=0)
+        threat_category = Label(tab3, text="Category")
+        threat_category.grid(row=3, column=0)
+
+
+
+        # Submit Button
+        submit_threats = Button(tab3, text="Submit threat", command=submitThreat)
+        submit_threats.grid(row=5, column=0, columnspan=4, pady=10, ipadx=100)
+
+        cursor.execute('''SELECT ThreatID from threat''')
+        print(cursor.fetchall())
+
+
 
         # Commit Changes and Close connection
         conn.commit()
