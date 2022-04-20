@@ -448,28 +448,52 @@ def main():
             else:
                 print("Input doesnt match proof of stake ")
 
-            # Show records
+            # Show interoperability data
             for intData in interoperability_data:
                 for j in intData:
                     if (j == strategy):
                         htree.insert(parent=5, index='end', iid=id_counter, text=(intData[0]), values=(wrap(intData[1]), intData[4], intData[3]))
                         id_counter += 1
 
+            # Check synchronous data
             if search(synchronous_type_data[0][2], bcombo1) or search(asynchronous_type_data[0][2], bcombo2):
                 # Show records
                 for s in synchronous_type_data:
+                    print(s)
                     if (s != ''):
                         htree.insert(parent=1, index='end', iid=id_counter, text=(s[0]),
-                                     values=(s[0], s[1], s[2]))
+                                     values=(wrap(s[1]), s[4], s[3]))
                         id_counter += 1
                     else:
                         print("Did not found synchronous network data ")
             else:
-                print("Input doesnt match proof of stake ")
-            if search(psynchronous_type_data[0][2], bcombo1) or search(asynchronous_type_data[0][2], bcombo2):
-                return
+                print("Input doesnt match network type ")
+
+            # Check partially synchronous data
+            if search(psynchronous_type_data[0][2], bcombo1) or search(psynchronous_type_data[0][2], bcombo2):
+                # Show records
+                for s in synchronous_type_data:
+                    if (s != ''):
+                        htree.insert(parent=1, index='end', iid=id_counter, text=(s[0]),
+                                     values=(wrap(s[1]), s[4], s[3]))
+                        id_counter += 1
+                    else:
+                        print("Did not found partially synchronous network data ")
+            else:
+                print("Input doesnt match network type ")
+
+            # Check asynchronous data
             if search(asynchronous_type_data[0][2], bcombo1) or search(asynchronous_type_data[0][2], bcombo2):
-                return
+                # Show records
+                for s in synchronous_type_data:
+                    if (s != ''):
+                        htree.insert(parent=1, index='end', iid=id_counter, text=(s[0]),
+                                     values=(wrap(s[1]), s[4], s[3]))
+                        id_counter += 1
+                    else:
+                        print("Did not found asynchronous network data ")
+            else:
+                print("Input doesnt match network type ")
 
             # Hide threats
             def hideThreats():
@@ -798,11 +822,12 @@ def main():
 
         # Combobox
         options = []
-        cursor.execute("SELECT B_name,ConsensusID, Network_name from blockchains, networkType GROUP BY B_name")
+        cursor.execute("SELECT B_name,ConsensusID,NetworkTypeID from blockchains")
         records = cursor.fetchall()
+        print(records)
 
         for i in records:
-            options.append(i[0] +' : ' + i[1] + ':' + i[2])
+            options.append(i[0] +' : ' + i[1] + ' : ' + i[2])
 
         blockchain1combo_type = ttk.Combobox(tab2, state="readonly", textvariable=block1, width=40, values=options)
         blockchain1combo_type.grid(row=0, column=1, padx=20, pady=10)
