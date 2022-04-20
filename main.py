@@ -307,9 +307,71 @@ def main():
 
             interoperability_data = cursor.fetchall()
 
+            # Query the database
+            cursor.execute(
+                """SELECT Threat_Name,Description, Btype_name, URL, GROUP_CONCAT(Stride_Name) 
+                    FROM threat,btype
+                    JOIN networkThreat ON networkThreat.ThreatID = threat.ThreatID 
+                    JOIN strideThreat ON threat.threatID = strideThreat.ThreatID
+                    JOIN stride ON strideThreat.StrideID = stride.StrideID
+                    AND networkThreat.BtypeID = btype.BtypeID 
+                    WHERE Btype_name = 'Public Blockchain' 
+                    GROUP BY Threat_Name""")
 
-            cursor.execute("""SELECT Threat_Name FROM threat t , networkThreat n WHERE t.ThreatID == n.ThreatID """)
-            ex1 = cursor.fetchall()
+            network_public_data = cursor.fetchall()
+
+            # Query the database
+            cursor.execute(
+                """SELECT Threat_Name,Description, Btype_name, URL, GROUP_CONCAT(Stride_Name) 
+                    FROM threat,btype
+                    JOIN networkThreat ON networkThreat.ThreatID = threat.ThreatID 
+                    JOIN strideThreat ON threat.threatID = strideThreat.ThreatID
+                    JOIN stride ON strideThreat.StrideID = stride.StrideID
+                    AND networkThreat.BtypeID = btype.BtypeID 
+                    WHERE Btype_name = 'Private Blockchain' 
+                    GROUP BY Threat_Name""")
+
+            network_private_data = cursor.fetchall()
+
+            # Query the database
+            cursor.execute(
+                """SELECT Threat_Name,Description, Network_name, URL, GROUP_CONCAT(Stride_Name) 
+                    FROM threat,networkType
+                    JOIN networkTypeThreat ON networkTypeThreat.ThreatID = threat.ThreatID 
+                    JOIN strideThreat ON threat.threatID = strideThreat.ThreatID
+                    JOIN stride ON strideThreat.StrideID = stride.StrideID
+                    AND networkTypeThreat.NetworkTypeID = networkType.NetworkTypeID 
+                    WHERE Network_name = 'Synchronous' 
+                    GROUP BY Threat_Name""")
+
+            synchronous_type_data = cursor.fetchall()
+
+            # Query the database
+            cursor.execute(
+                """SELECT Threat_Name,Description, Network_name, URL, GROUP_CONCAT(Stride_Name) 
+                    FROM threat,networkType
+                    JOIN networkTypeThreat ON networkTypeThreat.ThreatID = threat.ThreatID 
+                    JOIN strideThreat ON threat.threatID = strideThreat.ThreatID
+                    JOIN stride ON strideThreat.StrideID = stride.StrideID
+                    AND networkTypeThreat.NetworkTypeID = networkType.NetworkTypeID 
+                    WHERE Network_name = 'Partially synchronous' 
+                    GROUP BY Threat_Name""")
+
+            psynchronous_type_data = cursor.fetchall()
+
+            # Query the database
+            cursor.execute(
+                """SELECT Threat_Name,Description, Network_name, URL, GROUP_CONCAT(Stride_Name) 
+                    FROM threat,networkType
+                    JOIN networkTypeThreat ON networkTypeThreat.ThreatID = threat.ThreatID 
+                    JOIN strideThreat ON threat.threatID = strideThreat.ThreatID
+                    JOIN stride ON strideThreat.StrideID = stride.StrideID
+                    AND networkTypeThreat.NetworkTypeID = networkType.NetworkTypeID 
+                    WHERE Network_name = 'Asynchronous' 
+                    GROUP BY Threat_Name""")
+
+            asynchronous_type_data = cursor.fetchall()
+
 
             # Create frame for treeview
             treeview = Frame(root)
@@ -549,7 +611,9 @@ def main():
             # Create table for network threats
             cursor.execute("""CREATE TABLE IF NOT EXISTS networkThreat(
                                                        ThreatID INTEGER,
-                                                       FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID))""")
+                                                       BtypeID INTEGER, 
+                                                       FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID),
+                                                       FOREIGN KEY (BtypeID) REFERENCES btype(BtypeID))""")
 
             # Create table for cryptography threats
             cursor.execute("""CREATE TABLE IF NOT EXISTS cryptographyThreat(
@@ -569,6 +633,17 @@ def main():
                                                 FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID),
                                                 FOREIGN KEY (StrategyID) REFERENCES strategy(StrategyID))""")
 
+            # Create table for network public/private threats
+            cursor.execute("""CREATE TABLE IF NOT EXISTS networkType (
+                                                          NetworkTypeID INTEGER PRIMARY KEY,
+                                                          Network_name text)""")
+
+            # Create table for networkType threats
+            cursor.execute("""CREATE TABLE IF NOT EXISTS networkTypeThreat (
+                                                ThreatID INTEGER,
+                                                NetworkTypeID INTEGER,
+                                                FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID),
+                                                FOREIGN KEY (NetworkTypeID) REFERENCES networkType(NetworkTypeID))""")
 
             cursor.execute('INSERT OR IGNORE INTO cryptography VALUES(NULL,TRUE)')
             cursor.execute('INSERT OR IGNORE INTO cryptography VALUES(NULL,FALSE)')
@@ -583,6 +658,8 @@ def main():
             stride = pd.read_csv('data/stride.csv', sep=';')
             stride_threats = pd.read_csv('data/strideThreat.csv', sep=';')
             network_threats = pd.read_csv('data/networkThreat.csv', sep=';')
+            network_type = pd.read_csv('data/networkType.csv', sep=';')
+            network_type_threat = pd.read_csv('data/networkTypeThreat.csv', sep=';')
             cryptography_threats = pd.read_csv('data/cryptographyThreat.csv', sep=';')
             error_threats = pd.read_csv('data/errorThreat.csv', sep=';')
 
@@ -598,6 +675,8 @@ def main():
             network_threats.to_sql('networkThreat', conn, if_exists='replace', index=False)
             cryptography_threats.to_sql('cryptographyThreat', conn, if_exists='replace', index=False)
             error_threats.to_sql('errorThreat', conn, if_exists='replace', index=False)
+            network_type.to_sql('networkType', conn, if_exists='replace', index=False)
+            network_type_threat.to_sql('networkTypeThreat', conn, if_exists='replace', index=False)
 
 
             # Commit Changes and Close connection
