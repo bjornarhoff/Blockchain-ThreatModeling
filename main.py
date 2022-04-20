@@ -742,6 +742,16 @@ def main():
         crypt = ttk.Combobox(tab1, state="readonly", textvariable=type3, width=20, values=trueOrFalse)
         crypt.grid(row=3, column=1, padx=20, pady=10)
 
+        # Checkbutton
+        synchro = Checkbutton(tab1, text="Synchronous", variable='', onvalue='', command='')
+        synchro.grid(row=4, column=0,pady=10)
+
+        psynchro = Checkbutton(tab1, text="Partially synchronous", variable=', onvalue=', command='')
+        psynchro.grid(row=4,column=1,pady=10,padx=20)
+
+        asynchro = Checkbutton(tab1, text="Asynchronous", onvalue=', variable=', command='')
+        asynchro.grid(row=4,column=2,pady=10)
+
         # Textbox label
         b_type_label = Label(tab1, text="Blockchain Type")
         b_type_label.grid(row=0, column=0)
