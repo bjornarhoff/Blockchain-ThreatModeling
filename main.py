@@ -57,14 +57,16 @@ def main():
             bname = b_name.get()
             cons = consensus.get()
             crypto = crypt.get()
+            network = network_type.get()
+
             msg = ''
 
             try:
-                if (btype != '' and bname != '' and cons != '' and crypto != ''):
+                if (btype != '' and bname != '' and cons != '' and crypto != '' and network != ''):
                     cursor.execute(
-                        """INSERT INTO blockchains(BtypeID, B_name, ConsensusID,CryptographyID) 
-                          VALUES(?,?,?,?)""",
-                        (btype, bname, cons, crypto), )
+                        """INSERT INTO blockchains(BtypeID, B_name, ConsensusID,CryptographyID, NetworkTypeID) 
+                          VALUES(?,?,?,?,?)""",
+                        (btype, bname, cons, crypto, network), )
 
                     msg = 'Blockchain added to database!'
                     # Clear texboxes
@@ -72,6 +74,7 @@ def main():
                     b_name.delete(0, END)
                     consensus.set('')
                     crypt.set('')
+                    network_type.set('')
                 else:
                     msg = 'Fill inn fields!'
             except Exception as ep:
@@ -86,11 +89,8 @@ def main():
 
         # Submit interoperable blockchain to database
         def submitThreat():
-            conn = sqlite3.connect('blockchain_book.db')
-            cursor = conn.cursor()
             threats = pd.read_csv('data/threat.csv', sep=';')
             last_id = threats.tail(1).ThreatID
-
 
             name_threat = t_name.get()
             description_threat = t_description.get()
@@ -98,12 +98,7 @@ def main():
             cat1 = t_category.get()
             cat2 = t_category2.get()
 
-
-
-
             msg = ''
-
-
 
             try:
                 new_threat = pd.DataFrame(
@@ -133,11 +128,6 @@ def main():
                 messagebox.showerror('error', ep)
 
             messagebox.showinfo('message', msg)
-
-            # Commit Changes
-            conn.commit()
-            # Close Connection
-            conn.close()
 
 
 
@@ -557,9 +547,11 @@ def main():
                         ConsensusID text NOT NULL,
                         BtypeID text NOT NULL,
                         CryptographyID BOOLEAN NOT NULL,
+                        NetworkTypeID text NOT NULL,
                         FOREIGN KEY (BtypeID) REFERENCES btype (BtypeID),
                         FOREIGN KEY (CryptographyID) REFERENCES cryptography (CryptographyID)
-                        FOREIGN KEY (ConsensusID) REFERENCES consensus (ConsensusID))""")
+                        FOREIGN KEY (ConsensusID) REFERENCES consensus (ConsensusID)
+                        FOREIGN KEY (NetworkTypeID) REFERENCES networkType(NetworkTypeID))""")
 
             # Create table for blockchain type
             cursor.execute(""" CREATE TABLE IF NOT EXISTS btype (
@@ -633,7 +625,7 @@ def main():
                                                 FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID),
                                                 FOREIGN KEY (StrategyID) REFERENCES strategy(StrategyID))""")
 
-            # Create table for network public/private threats
+            # Create table for network type
             cursor.execute("""CREATE TABLE IF NOT EXISTS networkType (
                                                           NetworkTypeID INTEGER PRIMARY KEY,
                                                           Network_name text)""")
@@ -695,6 +687,7 @@ def main():
         type1 = StringVar()
         type2 = StringVar()
         type3 = StringVar()
+        type4 = StringVar()
 
 
         # Get data from database
@@ -727,6 +720,11 @@ def main():
         cryptoList = [b for b, in cryptoQuery]
         trueOrFalse = [i > 0 for i in cryptoList]
 
+        networkQuery = cursor.execute(
+            """SELECT DISTINCT Network_name
+               FROM networkType""")
+        networkList = [i for i, in networkQuery]
+
         # Combobox
         b_type = ttk.Combobox(tab1, state="readonly", textvariable=type1, width=20, values=blockchainList)
         b_type.grid(row=0, column=1, padx=20, pady=10)
@@ -742,15 +740,8 @@ def main():
         crypt = ttk.Combobox(tab1, state="readonly", textvariable=type3, width=20, values=trueOrFalse)
         crypt.grid(row=3, column=1, padx=20, pady=10)
 
-        # Checkbutton
-        synchro = Checkbutton(tab1, text="Synchronous", variable='', onvalue='', command='')
-        synchro.grid(row=4, column=0,pady=10)
-
-        psynchro = Checkbutton(tab1, text="Partially synchronous", variable=', onvalue=', command='')
-        psynchro.grid(row=4,column=1,pady=10,padx=20)
-
-        asynchro = Checkbutton(tab1, text="Asynchronous", onvalue=', variable=', command='')
-        asynchro.grid(row=4,column=2,pady=10)
+        network_type = ttk.Combobox(tab1, state="readonly", textvariable=type4, width=20, values=networkList)
+        network_type.grid(row=4, column=1, padx=20, pady=10)
 
         # Textbox label
         b_type_label = Label(tab1, text="Blockchain Type")
@@ -761,6 +752,8 @@ def main():
         consensus_label.grid(row=2, column=0)
         crypt_label = Label(tab1, text="Cryptography")
         crypt_label.grid(row=3, column=0)
+        network_type_label = Label(tab1, text="Network")
+        network_type_label.grid(row=4, column=0)
 
         # Submit Button
         submit_button = Button(tab1, text="Add blockchain to database", command=submitBlockchain)
