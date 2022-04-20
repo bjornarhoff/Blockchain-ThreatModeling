@@ -23,8 +23,12 @@ def main():
     style.configure("Treeview",
                     background="#ededed",
                     foreground="black",
-                    rowheight=25,
-                    fieldbackground="#ededed")
+                    rowheight=40,
+                    fieldbackground="#ededed",
+                    highlightthickness=0,
+                    bd=0,
+                    font=('Arial', 13))
+    style.configure("Treeview.Heading", font=('Arial', 13, 'bold'))
 
     style.configure("mystyle.Treeview", highlightthickness=0, bd=0, font=('Arial', 13), rowheight=65, fieldbackground="#ededed", background="#ededed")  # Modify the font of the body
     style.configure("mystyle.Treeview.Heading", font=('Arial', 13, 'bold'))  # Modify the font of the headings
@@ -141,6 +145,7 @@ def main():
             b_name.config(state=DISABLED)
             consensus['state'] = 'disable'
             crypt.config(state=DISABLED)
+            network_type.config(state=DISABLED)
 
 
             # Treeview Frame
@@ -159,15 +164,16 @@ def main():
             tree_scroll.config(command=tree.yview)
 
             # Define Columns
-            tree['columns'] = ("ID", "Name", "Blockchain Type", "Consensus", "Cryptography")
+            tree['columns'] = ("ID", "Name", "Blockchain Type", "Consensus", "Cryptography", "Network")
 
             # Format Colums
             tree.column("#0", width=0, stretch=NO)
-            tree.column("ID", width=100, anchor=CENTER)
-            tree.column("Name", width=100, anchor=CENTER)
-            tree.column("Blockchain Type", anchor=CENTER, width=140)
-            tree.column("Consensus", anchor=CENTER, width=140)
+            tree.column("ID", width=50, anchor=CENTER)
+            tree.column("Name", width=200, anchor=CENTER)
+            tree.column("Blockchain Type", anchor=CENTER, width=150)
+            tree.column("Consensus", anchor=CENTER, width=300)
             tree.column("Cryptography", anchor=CENTER, width=100)
+            tree.column("Network", anchor=CENTER, width=200)
 
             # Column Heading
             tree.heading("ID", text="ID", anchor=CENTER)
@@ -175,6 +181,7 @@ def main():
             tree.heading("Blockchain Type", text="Blockchain Type", anchor=CENTER)
             tree.heading("Consensus", text="Consensus", anchor=CENTER)
             tree.heading("Cryptography", text="Cryptography", anchor=CENTER)
+            tree.heading("Network", text="Network", anchor=CENTER)
 
             # Clear the Treeview
             for record in tree.get_children():
@@ -192,11 +199,11 @@ def main():
             for record in data:
                 if counter % 2 == 0:
                     tree.insert(parent='', index='end', iid=counter, text='',
-                                values=(record[0], record[1], record[3], record[2], record[4]),
+                                values=(record[0], record[1], record[3], record[2], record[4], record[5]),
                                 tags=('evenrow',))
                 else:
                     tree.insert(parent='', index='end', iid=counter, text='',
-                                values=(record[0], record[1], record[3], record[2], record[4]),
+                                values=(record[0], record[1], record[3], record[2], record[4], record[5]),
                                 tags=('oddrow',))
                 # increment counter
                 counter += 1
@@ -213,6 +220,7 @@ def main():
                b_name.config(state=NORMAL)
                consensus['state'] = 'normal'
                crypt.config(state=NORMAL)
+               network_type.config(state=NORMAL)
                tree_frame.destroy()
 
             hide_button = Button(tab1, text="Hide records", command=hideRecords)
