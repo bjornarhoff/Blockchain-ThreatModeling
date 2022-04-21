@@ -370,6 +370,20 @@ def main():
 
             asynchronous_type_data = cursor.fetchall()
 
+            # Query the database
+            cursor.execute(
+                """SELECT Threat_Name,Description, cryptographyThreat.ThreatID, URL, GROUP_CONCAT(Stride_Name)
+                    FROM threat,cryptographyThreat
+                    JOIN strideThreat ON threat.threatID = strideThreat.ThreatID
+                    JOIN stride ON strideThreat.StrideID = stride.StrideID
+                    AND cryptographyThreat.ThreatID = threat.ThreatID 
+                    GROUP BY Threat_Name""")
+
+            cryptography_data = cursor.fetchall()
+
+            cursor.execute("""SELECT B_name, CryptographyID FROM blockchains""")
+            cryptography_boolean = cursor.fetchall()
+
 
             # Create frame for treeview
             treeview = Frame(root)
@@ -414,18 +428,26 @@ def main():
             htree.insert('', END, text='Transaction', iid=2, open=False)
             htree.insert('', END, text='Block Creation', iid=3, open=False)
             htree.insert('', END, text='Human error/Code Exploiting', iid=4, open=False)
+            htree.insert('', END, text='If not using cryptography', iid=12, open=False)
             htree.insert('', END, text='Interoperability' + ': '+ strategy, iid=5, open=False)
 
             # adding children of first node
             htree.insert('', tk.END, text='Proof-of-work', iid=6, open=False)
             htree.insert('', tk.END, text='Proof-of-stake', iid=7, open=False)
             htree.insert('', tk.END, text='Practical Byzantine Fault Tolerance', iid=8, open=False)
+            htree.insert('', tk.END, text='Synchronous', iid=9, open=False)
+            htree.insert('', tk.END, text='Partially Synchronous', iid=10, open=False)
+            htree.insert('', tk.END, text='Asynchronous', iid=11, open=False)
             htree.move(6,0,1)
             htree.move(7,0,2)
             htree.move(8, 0, 3)
+            htree.move(9, 1, 1)
+            htree.move(10, 1, 2)
+            htree.move(11, 1, 3)
 
             # ID counter to display hierarchical data
-            id_counter = 9
+            id_counter = 13
+
             if search(pow_data[1][2], bcombo1) or search(pow_data[1][2], bcombo2):
                 # Show records
                 for pow in pow_data:
@@ -459,9 +481,8 @@ def main():
             if search(synchronous_type_data[0][2], bcombo1) or search(asynchronous_type_data[0][2], bcombo2):
                 # Show records
                 for s in synchronous_type_data:
-                    print(s)
                     if (s != ''):
-                        htree.insert(parent=1, index='end', iid=id_counter, text=(s[0]),
+                        htree.insert(parent=9, index='end', iid=id_counter, text=(s[0]),
                                      values=(wrap(s[1]), s[4], s[3]))
                         id_counter += 1
                     else:
@@ -469,12 +490,13 @@ def main():
             else:
                 print("Input doesnt match network type ")
 
+
             # Check partially synchronous data
             if search(psynchronous_type_data[0][2], bcombo1) or search(psynchronous_type_data[0][2], bcombo2):
                 # Show records
                 for s in synchronous_type_data:
                     if (s != ''):
-                        htree.insert(parent=1, index='end', iid=id_counter, text=(s[0]),
+                        htree.insert(parent=10, index='end', iid=id_counter, text=(s[0]),
                                      values=(wrap(s[1]), s[4], s[3]))
                         id_counter += 1
                     else:
@@ -487,13 +509,21 @@ def main():
                 # Show records
                 for s in synchronous_type_data:
                     if (s != ''):
-                        htree.insert(parent=1, index='end', iid=id_counter, text=(s[0]),
+                        htree.insert(parent=11, index='end', iid=id_counter, text=(s[0]),
                                      values=(wrap(s[1]), s[4], s[3]))
                         id_counter += 1
                     else:
                         print("Did not found asynchronous network data ")
             else:
                 print("Input doesnt match network type ")
+
+            # Show cryptography data
+            #for cryptData in cryptography_boolean:
+              #  if (search(cryptData[0],bcombo1) and cryptData[1] == "False"):
+               #     for a in cryptography_data:
+                #        htree.insert(parent=12, index='end', iid=id_counter, text=(a[0]),
+                 #                    values=(wrap(a[1]), a[4], a[3]))
+                  #      id_counter += 1
 
             # Hide threats
             def hideThreats():
@@ -513,7 +543,6 @@ def main():
             # Commit Changes and Close connection
             conn.commit()
             conn.close()
-
 
 
         # Function to restrict the user to select only one strategy
