@@ -570,12 +570,24 @@ def main():
                 print("Input doesnt match network type ")
 
             # Show cryptography data
-            #for cryptData in cryptography_boolean:
-              #  if (search(cryptData[0],bcombo1) and cryptData[1] == "False"):
-               #     for a in cryptography_data:
-                #        htree.insert(parent=12, index='end', iid=id_counter, text=(a[0]),
-                 #                    values=(wrap(a[1]), a[4], a[3]))
-                  #      id_counter += 1
+            for cryptData in cryptography_boolean:
+                if ((cryptData[0] in bcombo1 or cryptData[0] in bcombo2) and cryptData[1] == 'False'):
+                    if ((cryptData[1] in bcombo1 and cryptData[1] in bcombo2) == False):
+                        # Show records
+                        for c in cryptography_data:
+                            if (c != ''):
+                                htree.insert(parent=12, index='end', iid=id_counter, text=(c[0]),
+                                             values=(wrap(c[1]), c[4], c[3]))
+                                id_counter += 1
+                        break
+                    else:
+                        # Show records
+                        for c in cryptography_data:
+                            if (c != ''):
+                                htree.insert(parent=12, index='end', iid=id_counter, text=(c[0]),
+                                             values=(wrap(c[1]), c[4], c[3]))
+                                id_counter += 1
+        
 
             # Hide threats
             def hideThreats():
