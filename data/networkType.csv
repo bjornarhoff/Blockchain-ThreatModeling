@@ -1,0 +1,4 @@
+NetworkTypeID;Network_name
+1;Synchronous
+2;Partially synchronous
+3;Asynchronous
