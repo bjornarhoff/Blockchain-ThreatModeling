@@ -380,10 +380,44 @@ def main():
                     GROUP BY Threat_Name""")
 
             cryptography_data = cursor.fetchall()
+            print(cryptography_data)
 
             cursor.execute("""SELECT B_name, CryptographyID FROM blockchains""")
             cryptography_boolean = cursor.fetchall()
+            print(cryptography_boolean)
 
+            # Query the database
+            cursor.execute(
+                """SELECT Threat_Name,Description, URL, GROUP_CONCAT(Stride_Name)
+                    FROM threat,transactionThreat
+                    JOIN strideThreat ON threat.threatID = strideThreat.ThreatID
+                    JOIN stride ON strideThreat.StrideID = stride.StrideID
+                    AND transactionThreat.ThreatID = threat.ThreatID 
+                    GROUP BY Threat_Name""")
+
+            transaction_data = cursor.fetchall()
+
+            # Query the database
+            cursor.execute(
+                """SELECT Threat_Name,Description, URL, GROUP_CONCAT(Stride_Name)
+                    FROM threat,errorThreat
+                    JOIN strideThreat ON threat.threatID = strideThreat.ThreatID
+                    JOIN stride ON strideThreat.StrideID = stride.StrideID
+                    AND errorThreat.ThreatID = threat.ThreatID 
+                    GROUP BY Threat_Name""")
+
+            error_data = cursor.fetchall()
+
+            # Query the database
+            cursor.execute(
+                """SELECT Threat_Name,Description, URL, GROUP_CONCAT(Stride_Name)
+                    FROM threat,blockCreationThreat
+                    JOIN strideThreat ON threat.threatID = strideThreat.ThreatID
+                    JOIN stride ON strideThreat.StrideID = stride.StrideID
+                    AND blockCreationThreat.ThreatID = threat.ThreatID 
+                    GROUP BY Threat_Name""")
+
+            blockCreation_data = cursor.fetchall()
 
             # Create frame for treeview
             treeview = Frame(root)
@@ -477,6 +511,24 @@ def main():
                         htree.insert(parent=5, index='end', iid=id_counter, text=(intData[0]), values=(wrap(intData[1]), intData[4], intData[3]))
                         id_counter += 1
 
+            # Show transaction data
+            for transaction in transaction_data:
+                htree.insert(parent=2, index='end', iid=id_counter, text=(transaction[0]),
+                             values=(wrap(transaction[1]), transaction[3], transaction[2]))
+                id_counter += 1
+
+            # Show human error data
+            for err in error_data:
+                htree.insert(parent=4, index='end', iid=id_counter, text=(err[0]),
+                             values=(wrap(err[1]), err[3], err[2]))
+                id_counter += 1
+
+            # Show block creation data
+            for block in blockCreation_data:
+                htree.insert(parent=3, index='end', iid=id_counter, text=(block[0]),
+                             values=(wrap(block[1]), block[3], block[2]))
+                id_counter += 1
+
             # Check synchronous data
             if search(synchronous_type_data[0][2], bcombo1) or search(asynchronous_type_data[0][2], bcombo2):
                 # Show records
@@ -543,7 +595,6 @@ def main():
             # Commit Changes and Close connection
             conn.commit()
             conn.close()
-
 
         # Function to restrict the user to select only one strategy
         def varUpdate():
@@ -693,6 +744,14 @@ def main():
                                                                    ThreatID INTEGER,
                                                                    FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID))""")
 
+            # Create table for application/human error threats
+            cursor.execute("""CREATE TABLE IF NOT EXISTS transactionThreat(
+                                                                  ThreatID INTEGER,
+                                                                  FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID))""")
+            # Create table for block creation threats
+            cursor.execute("""CREATE TABLE IF NOT EXISTS blockCreationThreat(
+                                                                              ThreatID INTEGER,
+                                                                              FOREIGN KEY (ThreatID) REFERENCES threat(ThreatID))""")
 
             # Create table for interoperability threats
             cursor.execute("""CREATE TABLE IF NOT EXISTS interoperabilityThreat (
@@ -730,6 +789,8 @@ def main():
             network_type_threat = pd.read_csv('data/networkTypeThreat.csv', sep=';')
             cryptography_threats = pd.read_csv('data/cryptographyThreat.csv', sep=';')
             error_threats = pd.read_csv('data/errorThreat.csv', sep=';')
+            transaction_threats = pd.read_csv('data/transactionThreat.csv', sep=';')
+            blockCreation_threats = pd.read_csv('data/blockCreation.csv', sep=';')
 
             # Insert dato to sqlite
             blockchain_type.to_sql('btype', conn, if_exists='replace', index=False)
@@ -745,6 +806,8 @@ def main():
             error_threats.to_sql('errorThreat', conn, if_exists='replace', index=False)
             network_type.to_sql('networkType', conn, if_exists='replace', index=False)
             network_type_threat.to_sql('networkTypeThreat', conn, if_exists='replace', index=False)
+            transaction_threats.to_sql('transactionThreat', conn, if_exists='replace', index=False)
+            blockCreation_threats.to_sql('blockCreationThreat', conn, if_exists='replace', index=False)
 
 
             # Commit Changes and Close connection
@@ -851,9 +914,8 @@ def main():
 
         # Combobox
         options = []
-        cursor.execute("SELECT B_name,ConsensusID,NetworkTypeID from blockchains")
+        cursor.execute("SELECT B_name,ConsensusID,NetworkTypeID,CryptographyID from blockchains")
         records = cursor.fetchall()
-        print(records)
 
         for i in records:
             options.append(i[0] +' : ' + i[1] + ' : ' + i[2])
