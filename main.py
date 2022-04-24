@@ -105,29 +105,36 @@ def main():
             msg = ''
 
             try:
-                new_threat = pd.DataFrame(
-                    {'ThreatID': last_id + 1, 'Threat_Name': name_threat, 'Description': description_threat,
-                     'URL': url_threat})
-                df_full = pd.concat([threats, new_threat])
-                last_id = df_full.tail(1).ThreatID
+                if (name_threat != '' and description_threat != '' and url_threat != '' and cat1 != '' and cat2 != ''):
+                    new_threat = pd.DataFrame(
+                        {'ThreatID': last_id + 1, 'Threat_Name': name_threat, 'Description': description_threat,
+                         'URL': url_threat})
+                    df_full = pd.concat([threats, new_threat])
+                    last_id = df_full.tail(1).ThreatID
 
-                if (cat1 == 'Consensus'):
-                    consensusThreat = pd.read_csv('data/consensusThreat.csv', sep=';')
-                    if (cat2 == 'Proof-of-Work'):
-                        new_consensus_threat = pd.DataFrame({'ThreatID': last_id, 'ConsensusID': 1})
-                        consensus_updated = pd.concat([consensusThreat, new_consensus_threat])
+                    if (cat1 == 'Consensus'):
+                        consensusThreat = pd.read_csv('data/consensusThreat.csv', sep=';')
+                        if (cat2 == 'Proof-of-Work'):
+                            new_consensus_threat = pd.DataFrame({'ThreatID': last_id, 'ConsensusID': 1})
+                            consensus_updated = pd.concat([consensusThreat, new_consensus_threat])
 
-                    if (cat2 == 'Proof-of-Stake'):
-                        new_consensus_threat = pd.DataFrame({'ThreatID': last_id, 'ConsensusID': 2})
-                        consensus_updated = pd.concat([consensusThreat, new_consensus_threat])
+                        if (cat2 == 'Proof-of-Stake'):
+                            new_consensus_threat = pd.DataFrame({'ThreatID': last_id, 'ConsensusID': 2})
+                            consensus_updated = pd.concat([consensusThreat, new_consensus_threat])
 
-                df_full.to_csv('data/threat.csv', sep=';', index=False)
-                consensus_updated.to_csv('data/consensusThreat.csv', sep=';', index=False)
+                    df_full.to_csv('data/threat.csv', sep=';', index=False)
+                    consensus_updated.to_csv('data/consensusThreat.csv', sep=';', index=False)
 
+                    msg = 'Threat created!'
 
-                msg = 'Threat created!'
-                # Clear texboxes
-
+                    # Clear texboxes
+                    t_name.delete(0, END)
+                    t_description.delete(0, END)
+                    t_url.delete(0,END)
+                    t_category.set('')
+                    t_category2.set('')
+                else:
+                    msg = 'Fill inn fields!'
             except Exception as ep:
                 messagebox.showerror('error', ep)
 
@@ -803,6 +810,7 @@ def main():
             error_threats = pd.read_csv('data/errorThreat.csv', sep=';')
             transaction_threats = pd.read_csv('data/transactionThreat.csv', sep=';')
             blockCreation_threats = pd.read_csv('data/blockCreation.csv', sep=';')
+
 
             # Insert dato to sqlite
             blockchain_type.to_sql('btype', conn, if_exists='replace', index=False)
