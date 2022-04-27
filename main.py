@@ -105,7 +105,7 @@ def main():
             msg = ''
 
             try:
-                if (name_threat != '' and description_threat != '' and url_threat != '' and cat1 != '' and cat2 != ''):
+                if (name_threat != '' and description_threat != '' and url_threat != '' and cat1 != ''):
                     new_threat = pd.DataFrame(
                         {'ThreatID': last_id + 1, 'Threat_Name': name_threat, 'Description': description_threat,
                          'URL': url_threat})
@@ -666,17 +666,15 @@ def main():
 
             if (category_input == 'Network'):
                 t_category2.config(state='enabled')
-                sql=''
+                sql='SELECT Network_name FROM networkType'
 
-            if (category_input == 'Cryptography'):
+            if (category_input == 'Cryptography' or category_input == 'Block Creation' or category_input == 'Human Error' or category_input == 'Transaction'):
                 t_category2.config(state='disabled')
                 sql=''
 
             cursor.execute(sql)
             result = cursor.fetchall()
             t_category2['values'] = result
-
-
 
 
             # Database connection
