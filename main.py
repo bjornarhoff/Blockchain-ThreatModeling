@@ -30,7 +30,7 @@ def main():
                     font=('Arial', 13))
     style.configure("Treeview.Heading", font=('Arial', 13, 'bold'))
 
-    style.configure("mystyle.Treeview", highlightthickness=0, bd=0, font=('Arial', 13), rowheight=65, fieldbackground="#ededed", background="#ededed")  # Modify the font of the body
+    style.configure("mystyle.Treeview", highlightthickness=0, bd=0, font=('Arial', 13), rowheight=75, fieldbackground="#ededed", background="#ededed")  # Modify the font of the body
     style.configure("mystyle.Treeview.Heading", font=('Arial', 13, 'bold'))  # Modify the font of the headings
     style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
 
