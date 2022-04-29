@@ -537,7 +537,7 @@ def main():
                 id_counter += 1
 
             # Check synchronous data
-            if search(synchronous_type_data[0][2], bcombo1) or search(asynchronous_type_data[0][2], bcombo2):
+            if search(synchronous_type_data[0][2], bcombo1) or search(synchronous_type_data[0][2], bcombo2):
                 # Show records
                 for s in synchronous_type_data:
                     if (s != ''):
