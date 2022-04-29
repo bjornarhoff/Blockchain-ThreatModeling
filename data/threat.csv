@@ -84,4 +84,4 @@ are committed, the attacker simply needs to delay messages between two halves of
 80;Identifier leaks in HTLC;Where the payment path holds identifiers from the HTCL that is leaked and could be observed. This is an issue where the transaction and the involved parties are publicly visible;https://par.nsf.gov/servlets/purl/10206409
 81;Sniffing;Monitoring and capturing all the packets passing through a given network;https://www.researchgate.net/publication/326956778_Sniffing_Cryptocurrency_Traffic
 82;Routing attack;Attackers goal is to partition the network into two or more disjoint components. When preventing components to communicate with nodes, the attacker forces the creation of parallel blockckchains.;https://link.springer.com/article/10.1007/s11042-020-09368-6
-83;DNS Hijack;Attacks on the DNS service in the network layer. This can be flooding the system causing denial of service or implementing rogue DNS;https://arxiv.org/pdf/1904.03487.pdf
+83;DNS Hijack;Attacks on the DNS service in the network layer. This can be flooding the system causing denial of service or implementing rogue DNS;https://arxiv.org/pdf/1904.03487.pdf 

@@ -122,6 +122,10 @@ def main():
                             new_consensus_threat = pd.DataFrame({'ThreatID': last_id, 'ConsensusID': 2})
                             consensus_updated = pd.concat([consensusThreat, new_consensus_threat])
 
+                        if (cat2 == 'Practical Byzantine Fault Tolerance'):
+                            new_consensus_threat = pd.DataFrame({'ThreatID': last_id, 'ConsensusID': 3})
+                            consensus_updated = pd.concat([consensusThreat, new_consensus_threat])
+
                     df_full.to_csv('data/threat.csv', sep=';', index=False)
                     consensus_updated.to_csv('data/consensusThreat.csv', sep=';', index=False)
 
@@ -299,6 +303,22 @@ def main():
 
             pos_data = cursor.fetchall()
 
+
+            # Query the database
+            cursor.execute(
+                """SELECT Threat_Name,Description, Consensus_name, URL, GROUP_CONCAT(Stride_Name) 
+                    FROM threat,consensus
+                    JOIN consensusThreat 
+                    ON consensusThreat.ThreatID = threat.ThreatID 
+                    JOIN strideThreat ON threat.threatID = strideThreat.ThreatID
+                    JOIN stride ON strideThreat.StrideID = stride.StrideID
+                    AND consensusThreat.ConsensusID = consensus.ConsensusID 
+                    WHERE Consensus_name = 'Practical Byzantine Fault Tolerance' 
+                    GROUP BY Threat_Name""")
+
+            pbft_data = cursor.fetchall()
+            print(pbft_data)
+
             # Query the database
             cursor.execute(
                 """SELECT Threat_Name, Description, Strategy_name, URL, GROUP_CONCAT(Stride_Name)
@@ -387,11 +407,11 @@ def main():
                     GROUP BY Threat_Name""")
 
             cryptography_data = cursor.fetchall()
-            print(cryptography_data)
+
 
             cursor.execute("""SELECT B_name, CryptographyID FROM blockchains""")
             cryptography_boolean = cursor.fetchall()
-            print(cryptography_boolean)
+
 
             # Query the database
             cursor.execute(
@@ -489,6 +509,7 @@ def main():
             # ID counter to display hierarchical data
             id_counter = 13
 
+            # PROOF OF WORK
             if search(pow_data[1][2], bcombo1) or search(pow_data[1][2], bcombo2):
                 # Show records
                 for pow in pow_data:
@@ -500,6 +521,7 @@ def main():
             else:
                 print("Input doesnt match proof of work ")
 
+            # PROOF OF STAKE
             if search(pos_data[1][2], bcombo1) or search(pos_data[1][2], bcombo2):
                 # Show records
                 for pos in pos_data:
@@ -510,6 +532,18 @@ def main():
                         print("Did not found proof-of-stake data ")
             else:
                 print("Input doesnt match proof of stake ")
+
+            # Practical Byzantine Fault Tolerance
+            if search(pbft_data[1][2], bcombo1) or search(pbft_data[1][2], bcombo2):
+                # Show records
+                for pbft in pbft_data:
+                    if (pbft != ''):
+                        htree.insert(parent=8, index='end', iid=id_counter, text=(pbft[0]),values=(wrap(pbft[1]),pbft[4],pbft[3]))
+                        id_counter += 1
+                    else:
+                        print("Did not found Practical Byzantine Fault Tolerance data ")
+            else:
+                print("Input doesnt match Practical Byzantine Fault Tolerance ")
 
             # Show interoperability data
             for intData in interoperability_data:
