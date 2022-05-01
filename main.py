@@ -30,7 +30,7 @@ def main():
                     font=('Arial', 13))
     style.configure("Treeview.Heading", font=('Arial', 13, 'bold'))
 
-    style.configure("mystyle.Treeview", highlightthickness=0, bd=0, font=('Arial', 13), rowheight=65, fieldbackground="#ededed", background="#ededed")  # Modify the font of the body
+    style.configure("mystyle.Treeview", highlightthickness=0, bd=0, font=('Arial', 13), rowheight=75, fieldbackground="#ededed", background="#ededed")  # Modify the font of the body
     style.configure("mystyle.Treeview.Heading", font=('Arial', 13, 'bold'))  # Modify the font of the headings
     style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
 
@@ -93,6 +93,8 @@ def main():
 
         # Submit interoperable blockchain to database
         def submitThreat():
+            global consensus_updated,network_updated
+
             threats = pd.read_csv('data/threat.csv', sep=';')
             last_id = threats.tail(1).ThreatID
 
@@ -105,34 +107,97 @@ def main():
             msg = ''
 
             try:
-                new_threat = pd.DataFrame(
-                    {'ThreatID': last_id + 1, 'Threat_Name': name_threat, 'Description': description_threat,
-                     'URL': url_threat})
-                df_full = pd.concat([threats, new_threat])
-                last_id = df_full.tail(1).ThreatID
+                if name_threat != '' and description_threat != '' and url_threat != '' and cat1 != '':
+                    new_threat = pd.DataFrame(
+                        {'ThreatID': last_id + 1, 'Threat_Name': name_threat, 'Description': description_threat,
+                         'URL': url_threat})
+                    df_full = pd.concat([threats, new_threat])
+                    last_id = df_full.tail(1).ThreatID
 
-                if (cat1 == 'Consensus'):
-                    consensusThreat = pd.read_csv('data/consensusThreat.csv', sep=';')
-                    if (cat2 == 'Proof-of-Work'):
-                        new_consensus_threat = pd.DataFrame({'ThreatID': last_id, 'ConsensusID': 1})
-                        consensus_updated = pd.concat([consensusThreat, new_consensus_threat])
+                    # Consensus
+                    if cat1 == 'Consensus':
+                        consensusThreat = pd.read_csv('data/consensusThreat.csv', sep=';')
+                        if cat2 == 'Proof-of-Work':
+                            new_consensus_threat = pd.DataFrame({'ThreatID': last_id, 'ConsensusID': 1})
+                            consensus_updated = pd.concat([consensusThreat, new_consensus_threat])
 
-                    if (cat2 == 'Proof-of-Stake'):
-                        new_consensus_threat = pd.DataFrame({'ThreatID': last_id, 'ConsensusID': 2})
-                        consensus_updated = pd.concat([consensusThreat, new_consensus_threat])
+                        if cat2 == 'Proof-of-Stake':
+                            new_consensus_threat = pd.DataFrame({'ThreatID': last_id, 'ConsensusID': 2})
+                            consensus_updated = pd.concat([consensusThreat, new_consensus_threat])
 
-                df_full.to_csv('data/threat.csv', sep=';', index=False)
-                consensus_updated.to_csv('data/consensusThreat.csv', sep=';', index=False)
+                        if cat2 == 'Practical Byzantine Fault Tolerance':
+                            new_consensus_threat = pd.DataFrame({'ThreatID': last_id, 'ConsensusID': 3})
+                            consensus_updated = pd.concat([consensusThreat, new_consensus_threat])
+                        # Update csv
+                        consensus_updated.to_csv('data/consensusThreat.csv', sep=';', index=False)
+
+                    # Network
+                    if cat1 == 'Network':
+                        networkThreat = pd.read_csv('data/networkTypeThreat.csv', sep=';')
+                        if cat2 == 'Synchronous':
+                            new_network_threat = pd.DataFrame({'ThreatID': last_id, 'NetworkTypeID': 1})
+                            network_updated = pd.concat([networkThreat, new_network_threat])
+
+                        if cat2 == 'Partially synchronous':
+                            new_network_threat = pd.DataFrame({'ThreatID': last_id, 'NetworkTypeID': 2})
+                            network_updated = pd.concat([networkThreat, new_network_threat])
+
+                        if cat2 == 'Asynchronous':
+                            new_network_threat = pd.DataFrame({'ThreatID': last_id, 'NetworkTypeID': 3})
+                            network_updated = pd.concat([networkThreat, new_network_threat])
+                        # Update csv
+                        network_updated.to_csv('data/networkTypeThreat.csv', sep=';', index=False)
+
+                    # Cryptography
+                    if cat1 == 'Cryptography':
+                        cryptographyThreat = pd.read_csv('data/cryptographyThreat.csv', sep=';')
+                        new_cryptography_threat = pd.DataFrame({'ThreatID': last_id})
+                        cryptography_updated = pd.concat([cryptographyThreat, new_cryptography_threat])
+                        # Update csv
+                        cryptography_updated.to_csv('data/cryptographyThreat.csv', sep=';', index=False)
+
+                    # Human Error
+                    if cat1 == 'Human Error':
+                        errorThreat = pd.read_csv('data/errorThreat.csv', sep=';')
+                        new_error_threat = pd.DataFrame({'ThreatID': last_id})
+                        error_updated = pd.concat([errorThreat, new_error_threat])
+                        # Update csv
+                        error_updated.to_csv('data/errorThreat.csv', sep=';', index=False)
+
+                    # Transaction
+                    if cat1 == 'Transaction':
+                        transactionThreat = pd.read_csv('data/transactionThreat.csv', sep=';')
+                        new_transaction_threat = pd.DataFrame({'ThreatID': last_id})
+                        transaction_updated = pd.concat([transactionThreat, new_transaction_threat])
+                        # Update csv
+                        transaction_updated.to_csv('data/transactionThreat.csv', sep=';', index=False)
+
+                    # Block creation
+                    if cat1 == 'Block creation':
+                        blockCreationThreat = pd.read_csv('data/blockCreation.csv', sep=';')
+                        new_blockCreation_threat = pd.DataFrame({'ThreatID': last_id})
+                        blockCreation_updated = pd.concat([blockCreationThreat, new_blockCreation_threat])
+                        # Update csv
+                        blockCreation_updated.to_csv('data/blockCreation.csv', sep=';', index=False)
 
 
-                msg = 'Threat created!'
-                # Clear texboxes
+                    # Write data to csv
+                    df_full.to_csv('data/threat.csv', sep=';', index=False)
+                    # Update message
+                    msg = 'Threat created!'
 
+                    # Clear texboxes
+                    t_name.delete(0, END)
+                    t_description.delete(0, END)
+                    t_url.delete(0,END)
+                    t_category.set('')
+                    t_category2.set('')
+                else:
+                    msg = 'Fill inn fields!'
             except Exception as ep:
                 messagebox.showerror('error', ep)
 
             messagebox.showinfo('message', msg)
-
 
 
         # Show records from database function
@@ -292,6 +357,22 @@ def main():
 
             pos_data = cursor.fetchall()
 
+
+            # Query the database
+            cursor.execute(
+                """SELECT Threat_Name,Description, Consensus_name, URL, GROUP_CONCAT(Stride_Name) 
+                    FROM threat,consensus
+                    JOIN consensusThreat 
+                    ON consensusThreat.ThreatID = threat.ThreatID 
+                    JOIN strideThreat ON threat.threatID = strideThreat.ThreatID
+                    JOIN stride ON strideThreat.StrideID = stride.StrideID
+                    AND consensusThreat.ConsensusID = consensus.ConsensusID 
+                    WHERE Consensus_name = 'Practical Byzantine Fault Tolerance' 
+                    GROUP BY Threat_Name""")
+
+            pbft_data = cursor.fetchall()
+            print(pbft_data)
+
             # Query the database
             cursor.execute(
                 """SELECT Threat_Name, Description, Strategy_name, URL, GROUP_CONCAT(Stride_Name)
@@ -380,11 +461,11 @@ def main():
                     GROUP BY Threat_Name""")
 
             cryptography_data = cursor.fetchall()
-            print(cryptography_data)
+
 
             cursor.execute("""SELECT B_name, CryptographyID FROM blockchains""")
             cryptography_boolean = cursor.fetchall()
-            print(cryptography_boolean)
+
 
             # Query the database
             cursor.execute(
@@ -482,6 +563,7 @@ def main():
             # ID counter to display hierarchical data
             id_counter = 13
 
+            # PROOF OF WORK
             if search(pow_data[1][2], bcombo1) or search(pow_data[1][2], bcombo2):
                 # Show records
                 for pow in pow_data:
@@ -493,6 +575,7 @@ def main():
             else:
                 print("Input doesnt match proof of work ")
 
+            # PROOF OF STAKE
             if search(pos_data[1][2], bcombo1) or search(pos_data[1][2], bcombo2):
                 # Show records
                 for pos in pos_data:
@@ -503,6 +586,18 @@ def main():
                         print("Did not found proof-of-stake data ")
             else:
                 print("Input doesnt match proof of stake ")
+
+            # Practical Byzantine Fault Tolerance
+            if search(pbft_data[1][2], bcombo1) or search(pbft_data[1][2], bcombo2):
+                # Show records
+                for pbft in pbft_data:
+                    if (pbft != ''):
+                        htree.insert(parent=8, index='end', iid=id_counter, text=(pbft[0]),values=(wrap(pbft[1]),pbft[4],pbft[3]))
+                        id_counter += 1
+                    else:
+                        print("Did not found Practical Byzantine Fault Tolerance data ")
+            else:
+                print("Input doesnt match Practical Byzantine Fault Tolerance ")
 
             # Show interoperability data
             for intData in interoperability_data:
@@ -530,7 +625,7 @@ def main():
                 id_counter += 1
 
             # Check synchronous data
-            if search(synchronous_type_data[0][2], bcombo1) or search(asynchronous_type_data[0][2], bcombo2):
+            if search(synchronous_type_data[0][2], bcombo1) or search(synchronous_type_data[0][2], bcombo2):
                 # Show records
                 for s in synchronous_type_data:
                     if (s != ''):
@@ -656,19 +751,19 @@ def main():
             if (category_input == 'Consensus'):
                 t_category2.config(state='enabled')
                 sql = 'SELECT Consensus_name FROM consensus'
+                cursor.execute(sql)
 
             if (category_input == 'Network'):
                 t_category2.config(state='enabled')
-                sql=''
+                sql='SELECT Network_name FROM networkType'
+                cursor.execute(sql)
 
-            if (category_input == 'Cryptography'):
+            if (category_input == 'Cryptography' or category_input == 'Block Creation' or category_input == 'Human Error' or category_input == 'Transaction'):
                 t_category2.config(state='disabled')
-                sql=''
 
-            cursor.execute(sql)
             result = cursor.fetchall()
-            t_category2['values'] = result
-
+            result_list = [r for r, in result]
+            t_category2['values'] = result_list
 
 
 
@@ -803,6 +898,7 @@ def main():
             error_threats = pd.read_csv('data/errorThreat.csv', sep=';')
             transaction_threats = pd.read_csv('data/transactionThreat.csv', sep=';')
             blockCreation_threats = pd.read_csv('data/blockCreation.csv', sep=';')
+
 
             # Insert dato to sqlite
             blockchain_type.to_sql('btype', conn, if_exists='replace', index=False)
