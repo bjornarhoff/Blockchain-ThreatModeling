@@ -47,9 +47,11 @@ def main():
     tab_control.add(tab2, text="Discover threats")
     tab_control.pack(expand=1, fill="both", padx=100)
 
+
     tab3 = Frame(tab_control)
     tab_control.add(tab3, text="Add threats")
     tab_control.pack(expand=1, fill="both", padx=100)
+
 
     try:
         # Submit blockchain to database
@@ -342,6 +344,7 @@ def main():
                     GROUP BY Threat_Name""")
 
             pow_data = cursor.fetchall()
+            print(pow_data)
 
             # Query the database
             cursor.execute(
@@ -726,6 +729,21 @@ def main():
             else:
                 pass
 
+        # Function to restrict the user to select only one strategy
+        def strideVariables():
+            v4 = var4.get()
+            v5 = var5.get()
+            v6 = var6.get()
+            v7 = var7.get()
+            v8 = var8.get()
+            v9 = var9.get()
+            v10 = var10.get()
+            v11 = var11.get()
+            v12 = var12.get()
+
+
+
+
         # Dropbown menu method based on the first input
         def pick_consensus(e):
             if b_type.get() == blockchainList[0]:
@@ -764,7 +782,6 @@ def main():
             result = cursor.fetchall()
             result_list = [r for r, in result]
             t_category2['values'] = result_list
-
 
 
             # Database connection
@@ -1026,7 +1043,7 @@ def main():
         records = cursor.fetchall()
 
         for i in records:
-            options.append(i[0] +' : ' + i[1] + ' : ' + i[2])
+            options.append(i[0] + ' : ' + i[1] + ' : ' + i[2])
 
         blockchain1combo_type = ttk.Combobox(tab2, state="readonly", textvariable=block1, width=40, values=options)
         blockchain1combo_type.grid(row=0, column=1, padx=20, pady=10)
@@ -1067,9 +1084,27 @@ def main():
                             'Human Error',
                             'Transaction',
                             'Block creation']
-
+        # Variables
+        var4 = StringVar()
+        var5 = StringVar()
+        var6 = StringVar()
+        var7 = StringVar()
+        var8 = StringVar()
+        var9 = StringVar()
+        var10 = StringVar()
+        var11 = StringVar()
+        var12 = StringVar()
         category1 = StringVar()
         category2 = StringVar()
+        data = {}  # dictionary to store all the IntVars
+
+
+        cursor.execute("SELECT Stride_Name from stride")
+        all_stride = cursor.fetchall()
+        all_stride_list = [s for s, in all_stride]
+        print(all_stride_list)
+
+
 
         t_name = ttk.Entry(tab3, text='Name')
         t_name.grid(row=0, column=1, padx=20, pady=10)
@@ -1085,6 +1120,44 @@ def main():
                                    values=category_options)
         t_category2.grid(row=4, column=1, padx=10, pady=10)
 
+        row = 5
+        for stride in all_stride_list:
+            var = IntVar()
+            stride_button = Checkbutton(tab3, text=stride, variable=var)
+            stride_button.grid(row=row, column=1, padx=10, pady=10)
+            row += 1
+            data[stride] = var  # add IntVar to the dictionary
+
+        # Checkbutton
+        """spoofing = Checkbutton(tab3, text="Spoofing", variable=var4, command=varUpdate)
+        spoofing.grid(row=5, column=1, pady=10)
+
+        tampering = Checkbutton(tab3, text="Tampering", variable=var5, command=varUpdate)
+        tampering.grid(row=5, column=2, pady=10, padx=20)
+
+        repudiation = Checkbutton(tab3, text="Repudiation", variable=var6, command=varUpdate)
+        repudiation.grid(row=5, column=3, pady=10)
+
+        information_dis = Checkbutton(tab3, text="Information Disclosure", variable=var7, command=varUpdate)
+        information_dis.grid(row=5, column=4, pady=10)
+
+        dos = Checkbutton(tab3, text="Denial of Service ", variable=var8, command=varUpdate)
+        dos.grid(row=6, column=1, pady=10, padx=20)
+
+        elevation_pa = Checkbutton(tab3, text="Elevation of Privilege Account ", variable=var9, command=varUpdate)
+        elevation_pa.grid(row=6, column=2, pady=10)
+
+        elevation_b = Checkbutton(tab3, text="Elevation of Blockchain", variable=var10, command=varUpdate)
+        elevation_b.grid(row=6, column=3, pady=10, padx=20)
+
+        elevation_psc = Checkbutton(tab3, text="Elevation of Privilege Smart Contract", variable=var11)
+        elevation_psc.grid(row=6, column=4, pady=10) """
+
+        #for s in all_stride:
+         #   all_stride[s] = Variable()
+          #  l = Checkbutton(tab3, text=s, variable=all_stride[s])
+           # l.pack()
+
 
         # Textbox label
         threat_name = Label(tab3, text="Name")
@@ -1095,12 +1168,17 @@ def main():
         threat_url.grid(row=2, column=0)
         threat_category = Label(tab3, text="Category")
         threat_category.grid(row=3, column=0)
+        threat_category = Label(tab3, text="Stride")
+        threat_category.grid(row=5, column=0)
+
 
 
 
         # Submit Button
         submit_threats = Button(tab3, text="Submit threat", command=submitThreat)
-        submit_threats.grid(row=5, column=0, columnspan=4, pady=10, ipadx=100)
+        submit_threats.grid(row=14, column=0, columnspan=5, pady=30, ipadx=200)
+
+
 
 
 
