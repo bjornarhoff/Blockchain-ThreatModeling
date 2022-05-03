@@ -105,6 +105,7 @@ def main():
             url_threat = t_url.get()
             cat1 = t_category.get()
             cat2 = t_category2.get()
+            stride_value = [(stride_name,var.get()) for stride_name, var in stride_data.items()]
 
             msg = ''
 
@@ -115,6 +116,21 @@ def main():
                          'URL': url_threat})
                     df_full = pd.concat([threats, new_threat])
                     last_id = df_full.tail(1).ThreatID
+
+                    # STRIDE
+                    new_strideThreat = pd.DataFrame()
+                    for strideId, variable in stride_value:
+                        if variable == 1:
+                            new_strideThreat = pd.concat(
+                                [new_strideThreat, pd.DataFrame({'ThreatID': last_id, 'StrideID': strideId[0]})])
+                            print(new_strideThreat)
+
+                    strideThreat = pd.read_csv('data/strideThreat.csv', sep=';')
+                    stride_updated = pd.concat([strideThreat, new_strideThreat])
+
+                    # Update csv
+                    stride_updated.to_csv('data/strideThreat.csv', sep=';', index=False)
+
 
                     # Consensus
                     if cat1 == 'Consensus':
@@ -344,7 +360,6 @@ def main():
                     GROUP BY Threat_Name""")
 
             pow_data = cursor.fetchall()
-            print(pow_data)
 
             # Query the database
             cursor.execute(
@@ -360,7 +375,6 @@ def main():
 
             pos_data = cursor.fetchall()
 
-
             # Query the database
             cursor.execute(
                 """SELECT Threat_Name,Description, Consensus_name, URL, GROUP_CONCAT(Stride_Name) 
@@ -374,7 +388,6 @@ def main():
                     GROUP BY Threat_Name""")
 
             pbft_data = cursor.fetchall()
-            print(pbft_data)
 
             # Query the database
             cursor.execute(
@@ -440,6 +453,7 @@ def main():
                     GROUP BY Threat_Name""")
 
             psynchronous_type_data = cursor.fetchall()
+            print(psynchronous_type_data)
 
             # Query the database
             cursor.execute(
@@ -453,6 +467,7 @@ def main():
                     GROUP BY Threat_Name""")
 
             asynchronous_type_data = cursor.fetchall()
+
 
             # Query the database
             cursor.execute(
@@ -644,7 +659,7 @@ def main():
             # Check partially synchronous data
             if search(psynchronous_type_data[0][2], bcombo1) or search(psynchronous_type_data[0][2], bcombo2):
                 # Show records
-                for s in synchronous_type_data:
+                for s in psynchronous_type_data:
                     if (s != ''):
                         htree.insert(parent=10, index='end', iid=id_counter, text=(s[0]),
                                      values=(wrap(s[1]), s[4], s[3]))
@@ -657,7 +672,7 @@ def main():
             # Check asynchronous data
             if search(asynchronous_type_data[0][2], bcombo1) or search(asynchronous_type_data[0][2], bcombo2):
                 # Show records
-                for s in synchronous_type_data:
+                for s in asynchronous_type_data:
                     if (s != ''):
                         htree.insert(parent=11, index='end', iid=id_counter, text=(s[0]),
                                      values=(wrap(s[1]), s[4], s[3]))
@@ -729,19 +744,17 @@ def main():
             else:
                 pass
 
-        # Function to restrict the user to select only one strategy
-        def strideVariables():
-            v4 = var4.get()
-            v5 = var5.get()
-            v6 = var6.get()
-            v7 = var7.get()
-            v8 = var8.get()
-            v9 = var9.get()
-            v10 = var10.get()
-            v11 = var11.get()
-            v12 = var12.get()
+        # Update stride combobox
+        def update_stride(*args):
+            values = [(stride_variable, var.get()) for stride_variable, var in stride_data.items()]
+            result = 0
+            for val, variable in values:
+                result += variable
 
-
+            if result > 0 and t_name != '' and t_description != '' and t_url != '' and t_category.get() != '':
+                submit_threats['state'] = NORMAL
+            else:
+                submit_threats['state'] = DISABLED
 
 
         # Dropbown menu method based on the first input
@@ -1085,26 +1098,18 @@ def main():
                             'Transaction',
                             'Block creation']
         # Variables
-        var4 = StringVar()
-        var5 = StringVar()
-        var6 = StringVar()
-        var7 = StringVar()
-        var8 = StringVar()
-        var9 = StringVar()
-        var10 = StringVar()
-        var11 = StringVar()
-        var12 = StringVar()
+        #var4 = StringVar()
+        #var5 = StringVar()
+        #var6 = StringVar()
+        #var7 = StringVar()
+        #var8 = StringVar()
+        #var9 = StringVar()
+        #var10 = StringVar()
+        #var11 = StringVar()
+        #var12 = StringVar()
         category1 = StringVar()
         category2 = StringVar()
-        data = {}  # dictionary to store all the IntVars
-
-
-        cursor.execute("SELECT Stride_Name from stride")
-        all_stride = cursor.fetchall()
-        all_stride_list = [s for s, in all_stride]
-        print(all_stride_list)
-
-
+        stride_data = {}  # dictionary to store all the IntVars
 
         t_name = ttk.Entry(tab3, text='Name')
         t_name.grid(row=0, column=1, padx=20, pady=10)
@@ -1120,13 +1125,19 @@ def main():
                                    values=category_options)
         t_category2.grid(row=4, column=1, padx=10, pady=10)
 
+        cursor.execute("SELECT StrideID,Stride_Name from stride")
+        all_stride = cursor.fetchall()
+        all_stride_list = [(s,t) for s, t in all_stride]
+
         row = 5
         for stride in all_stride_list:
             var = IntVar()
-            stride_button = Checkbutton(tab3, text=stride, variable=var)
+            stride_button = Checkbutton(tab3, text=stride[1], variable=var, command=update_stride)
             stride_button.grid(row=row, column=1, padx=10, pady=10)
             row += 1
-            data[stride] = var  # add IntVar to the dictionary
+            stride_data[stride] = var  # add IntVar to the dictionary
+
+
 
         # Checkbutton
         """spoofing = Checkbutton(tab3, text="Spoofing", variable=var4, command=varUpdate)
@@ -1153,10 +1164,6 @@ def main():
         elevation_psc = Checkbutton(tab3, text="Elevation of Privilege Smart Contract", variable=var11)
         elevation_psc.grid(row=6, column=4, pady=10) """
 
-        #for s in all_stride:
-         #   all_stride[s] = Variable()
-          #  l = Checkbutton(tab3, text=s, variable=all_stride[s])
-           # l.pack()
 
 
         # Textbox label
@@ -1168,14 +1175,14 @@ def main():
         threat_url.grid(row=2, column=0)
         threat_category = Label(tab3, text="Category")
         threat_category.grid(row=3, column=0)
-        threat_category = Label(tab3, text="Stride")
+        threat_category = Label(tab3, text="STRIDE")
         threat_category.grid(row=5, column=0)
 
 
 
 
         # Submit Button
-        submit_threats = Button(tab3, text="Submit threat", command=submitThreat)
+        submit_threats = Button(tab3, text="Submit threat", command=submitThreat, state=DISABLED)
         submit_threats.grid(row=14, column=0, columnspan=5, pady=30, ipadx=200)
 
 
