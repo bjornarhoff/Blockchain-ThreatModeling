@@ -30,7 +30,8 @@ def main():
                     font=('Arial', 13))
     style.configure("Treeview.Heading", font=('Arial', 13, 'bold'))
 
-    style.configure("mystyle.Treeview", highlightthickness=0, bd=0, font=('Arial', 13), rowheight=75, fieldbackground="#ededed", background="#ededed")  # Modify the font of the body
+    style.configure("mystyle.Treeview", highlightthickness=0, bd=0, font=('Arial', 13), rowheight=75,
+                    fieldbackground="#ededed", background="#ededed")  # Modify the font of the body
     style.configure("mystyle.Treeview.Heading", font=('Arial', 13, 'bold'))  # Modify the font of the headings
     style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
 
@@ -39,19 +40,20 @@ def main():
               background=[('selected', "#347083")])
 
     # Creating tabs
-    tab_control = ttk.Notebook(root)
-    tab1 = Frame(tab_control)
+    tab_control = ttk.Notebook(root, width=width, height=height)
+    tab1 = Frame(tab_control, width=width, height=height)
+    tab1.pack(fill='both', expand=True)
     tab_control.add(tab1, text="Add blockchains")
 
-    tab2 = Frame(tab_control)
+    tab2 = Frame(tab_control, width=width, height=height)
+    tab2.pack(fill='both', expand=True)
     tab_control.add(tab2, text="Discover threats")
-    tab_control.pack(expand=1, fill="both", padx=100)
 
-
-    tab3 = Frame(tab_control)
+    tab3 = Frame(tab_control, width=width, height=height)
+    tab3.pack(fill='both', expand=True)
     tab_control.add(tab3, text="Add threats")
-    tab_control.pack(expand=1, fill="both", padx=100)
 
+    tab_control.pack(expand=True)
 
     try:
         # Submit blockchain to database
@@ -68,7 +70,7 @@ def main():
             msg = ''
 
             try:
-                if (btype != '' and bname != '' and cons != '' and crypto != '' and network != ''):
+                if btype != '' and bname != '' and cons != '' and crypto != '' and network != '':
                     cursor.execute(
                         """INSERT INTO blockchains(BtypeID, B_name, ConsensusID,CryptographyID, NetworkTypeID) 
                           VALUES(?,?,?,?,?)""",
@@ -95,7 +97,7 @@ def main():
 
         # Submit interoperable blockchain to database
         def submitThreat():
-            global consensus_updated,network_updated
+            global consensus_updated, network_updated
 
             threats = pd.read_csv('data/threat.csv', sep=';')
             last_id = threats.tail(1).ThreatID
@@ -105,7 +107,7 @@ def main():
             url_threat = t_url.get()
             cat1 = t_category.get()
             cat2 = t_category2.get()
-            stride_value = [(stride_name,var.get()) for stride_name, var in stride_data.items()]
+            stride_value = [(stride_name, var.get()) for stride_name, var in stride_data.items()]
 
             msg = ''
 
@@ -130,7 +132,6 @@ def main():
 
                     # Update csv
                     stride_updated.to_csv('data/strideThreat.csv', sep=';', index=False)
-
 
                     # Consensus
                     if cat1 == 'Consensus':
@@ -198,7 +199,6 @@ def main():
                         # Update csv
                         blockCreation_updated.to_csv('data/blockCreation.csv', sep=';', index=False)
 
-
                     # Write data to csv
                     df_full.to_csv('data/threat.csv', sep=';', index=False)
                     # Update message
@@ -207,7 +207,7 @@ def main():
                     # Clear texboxes
                     t_name.delete(0, END)
                     t_description.delete(0, END)
-                    t_url.delete(0,END)
+                    t_url.delete(0, END)
                     t_category.set('')
                     t_category2.set('')
                 else:
@@ -216,7 +216,6 @@ def main():
                 messagebox.showerror('error', ep)
 
             messagebox.showinfo('message', msg)
-
 
         # Show records from database function
         def showRecords():
@@ -230,21 +229,21 @@ def main():
             crypt.config(state=DISABLED)
             network_type.config(state=DISABLED)
 
-
-            # Treeview Frame
-            tree_frame = Frame(root)
-            tree_frame.pack(fill='x',pady=10)
-
-            # Treeview Scrollbar
-            tree_scroll = Scrollbar(tree_frame)
-            tree_scroll.pack(side=RIGHT, fill=Y)
-
             # Treeview
-            tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set, selectmode="extended")
-            tree.pack()
+            tree = ttk.Treeview(tab1, selectmode="extended", height=15)
+            tree.grid(row=13, column=0,columnspan=5, sticky='nsew',pady=20,padx=(30,0))
 
-            # Scrollbar
-            tree_scroll.config(command=tree.yview)
+            # add a scrollbar
+            vsb = tk.Scrollbar(tab1, orient="vertical", command=tree.yview)
+            vsb.grid(row=13, column=6, sticky='ns',pady=70)
+            tree.configure(yscrollcommand=vsb.set)
+
+            # Label Heading
+            heading = tk.Label(tab1,
+                               text="All blockchains",
+                               fg="black",
+                               font="Arial 17 bold")
+            heading.grid(row=12, column=0, columnspan=5, pady=(30, 0))
 
             # Define Columns
             tree['columns'] = ("ID", "Name", "Blockchain Type", "Consensus", "Cryptography", "Network")
@@ -260,7 +259,7 @@ def main():
 
             # Column Heading
             tree.heading("ID", text="ID", anchor=CENTER)
-            tree.heading("Name", text = "Name", anchor=CENTER)
+            tree.heading("Name", text="Name", anchor=CENTER)
             tree.heading("Blockchain Type", text="Blockchain Type", anchor=CENTER)
             tree.heading("Consensus", text="Consensus", anchor=CENTER)
             tree.heading("Cryptography", text="Cryptography", anchor=CENTER)
@@ -294,23 +293,23 @@ def main():
             # Commit Changes and Close connection
             conn.commit()
             conn.close()
+
             # Button for hide records
             def hideRecords():
-               hide_button['state'] = 'disable'
-               query_button['state'] = 'normal'
-               submit_button['state'] = 'normal'
-               b_type['state'] = 'normal'
-               b_name.config(state=NORMAL)
-               consensus['state'] = 'normal'
-               crypt.config(state=NORMAL)
-               network_type.config(state=NORMAL)
-               tree_frame.destroy()
+                hide_button['state'] = 'disable'
+                query_button['state'] = 'normal'
+                submit_button['state'] = 'normal'
+                b_type['state'] = 'normal'
+                b_name.config(state=NORMAL)
+                consensus['state'] = 'normal'
+                crypt.config(state=NORMAL)
+                network_type.config(state=NORMAL)
+                tree.destroy()
+                vsb.destroy()
+                heading.destroy()
 
             hide_button = Button(tab1, text="Hide records", command=hideRecords)
             hide_button.grid(row=7, column=2, columnspan=2, pady=10, padx=10, ipadx=137)
-
-
-
 
         # Show threats in treeview
         def showThreats():
@@ -329,14 +328,12 @@ def main():
 
             strategy = ''
             for c in checkboxes:
-               if c.get() == "Notary Scheme":
-                  strategy += c.get()
-               if c.get() == "HTLC":
-                  strategy += c.get()
-               if c.get() == "Relay/Sidechain":
-                  strategy += c.get()
-
-
+                if c.get() == "Notary Scheme":
+                    strategy += c.get()
+                if c.get() == "HTLC":
+                    strategy += c.get()
+                if c.get() == "Relay/Sidechain":
+                    strategy += c.get()
 
             def url_collect(e):
                 curItem = htree.focus()
@@ -345,7 +342,6 @@ def main():
                     threat_url = htree.item(curItem)['values'][2]  # collect selected row id
                     import webbrowser
                     webbrowser.open(threat_url)
-
 
             # Query the database
             cursor.execute(
@@ -453,7 +449,6 @@ def main():
                     GROUP BY Threat_Name""")
 
             psynchronous_type_data = cursor.fetchall()
-            print(psynchronous_type_data)
 
             # Query the database
             cursor.execute(
@@ -468,7 +463,6 @@ def main():
 
             asynchronous_type_data = cursor.fetchall()
 
-
             # Query the database
             cursor.execute(
                 """SELECT Threat_Name,Description, cryptographyThreat.ThreatID, URL, GROUP_CONCAT(Stride_Name)
@@ -480,10 +474,8 @@ def main():
 
             cryptography_data = cursor.fetchall()
 
-
             cursor.execute("""SELECT B_name, CryptographyID FROM blockchains""")
             cryptography_boolean = cursor.fetchall()
-
 
             # Query the database
             cursor.execute(
@@ -518,33 +510,37 @@ def main():
 
             blockCreation_data = cursor.fetchall()
 
-            # Create frame for treeview
-            treeview = Frame(root)
-            treeview.pack(expand=True, anchor='c')
+
             # Label Heading
-            Label(treeview,
-                            text="Hierarchical Threats Data",
-                            fg="black",
-                            font="Arial 15 bold").pack()
-            Label(treeview,
-                            text="Double click to get more information about the threat",
-                            fg="black",
-                            font="Arial 12 bold",
-                            pady= 5).pack()
-            # Treeview Scrollbar
-            scroll = Scrollbar(treeview)
-            scroll.pack(side=RIGHT, fill=Y)
+            heading = tk.Label(tab2,
+                  text="Hierarchical Threats Data",
+                  fg="black",
+                  font="Arial 17 bold")
+            heading.grid(row=8, column=0, columnspan=7,pady=(50,0))
+
+            sub_heading = tk.Label(tab2,
+                  text="Double click to get more information about the threat",
+                  fg="black",
+                  font="Arial 12 bold",
+                  pady=1)
+            sub_heading.grid(row=9, column=0, columnspan=7)
 
             # Treeview
-            htree = ttk.Treeview(treeview, yscrollcommand=scroll.set, height=15,selectmode="browse", style="mystyle.Treeview",columns=('Description','STRIDE',"URL"))
-            htree.pack(expand=True)
+            htree = ttk.Treeview(tab2, height=13, selectmode="browse",
+                                 style="mystyle.Treeview", columns=('Description', 'STRIDE', "URL"))
+            htree.grid(row=10, column=0, columnspan=7, sticky='nsw', pady=10, padx=(50,0))
             htree.bind("<Double-1>", url_collect)
-            # Scrollbar
-            scroll.config(command=htree.yview)
+
+            # add a scrollbar
+            # scrollbar = ttk.Scrollbar(tab1, orient="vertical", command=tree.yview)
+            vsb = tk.Scrollbar(tab2, orient="vertical", command=htree.yview)
+            vsb.grid(row=10, column=7, sticky='nsew')
+            htree.configure(yscrollcommand=vsb.set)
+
+
             # Clear the Treeview
             for record in htree.get_children():
                 htree.delete(record)
-
 
             htree.heading('#0', text='THREATS CATEGORIZED', anchor='c')
             htree.column('#0', width=350)
@@ -562,7 +558,7 @@ def main():
             htree.insert('', END, text='Block Creation', iid=3, open=False)
             htree.insert('', END, text='Human error/Code Exploiting', iid=4, open=False)
             htree.insert('', END, text='If not using cryptography', iid=12, open=False)
-            htree.insert('', END, text='Interoperability' + ': '+ strategy, iid=5, open=False)
+            htree.insert('', END, text='Interoperability' + ': ' + strategy, iid=5, open=False)
 
             # adding children of first node
             htree.insert('', tk.END, text='Proof-of-work', iid=6, open=False)
@@ -571,8 +567,8 @@ def main():
             htree.insert('', tk.END, text='Synchronous', iid=9, open=False)
             htree.insert('', tk.END, text='Partially Synchronous', iid=10, open=False)
             htree.insert('', tk.END, text='Asynchronous', iid=11, open=False)
-            htree.move(6,0,1)
-            htree.move(7,0,2)
+            htree.move(6, 0, 1)
+            htree.move(7, 0, 2)
             htree.move(8, 0, 3)
             htree.move(9, 1, 1)
             htree.move(10, 1, 2)
@@ -586,42 +582,41 @@ def main():
                 # Show records
                 for pow in pow_data:
                     if (pow != ''):
-                        htree.insert(parent=6, index='end', iid=id_counter, text=(pow[0]),values=(wrap(pow[1]),pow[4],pow[3]))
+                        htree.insert(parent=6, index='end', iid=id_counter, text=(pow[0]),
+                                     values=(wrap(pow[1]), pow[4], pow[3]))
                         id_counter += 1
                     else:
                         print("Did not found proof-of-work data")
-            else:
-                print("Input doesnt match proof of work ")
 
             # PROOF OF STAKE
             if search(pos_data[1][2], bcombo1) or search(pos_data[1][2], bcombo2):
                 # Show records
                 for pos in pos_data:
                     if (pos != ''):
-                        htree.insert(parent=7, index='end', iid=id_counter, text=(pos[0]),values=(wrap(pos[1]),pos[4],pos[3]))
+                        htree.insert(parent=7, index='end', iid=id_counter, text=(pos[0]),
+                                     values=(wrap(pos[1]), pos[4], pos[3]))
                         id_counter += 1
                     else:
                         print("Did not found proof-of-stake data ")
-            else:
-                print("Input doesnt match proof of stake ")
+
 
             # Practical Byzantine Fault Tolerance
             if search(pbft_data[1][2], bcombo1) or search(pbft_data[1][2], bcombo2):
                 # Show records
                 for pbft in pbft_data:
                     if (pbft != ''):
-                        htree.insert(parent=8, index='end', iid=id_counter, text=(pbft[0]),values=(wrap(pbft[1]),pbft[4],pbft[3]))
+                        htree.insert(parent=8, index='end', iid=id_counter, text=(pbft[0]),
+                                     values=(wrap(pbft[1]), pbft[4], pbft[3]))
                         id_counter += 1
                     else:
                         print("Did not found Practical Byzantine Fault Tolerance data ")
-            else:
-                print("Input doesnt match Practical Byzantine Fault Tolerance ")
 
             # Show interoperability data
             for intData in interoperability_data:
                 for j in intData:
                     if (j == strategy):
-                        htree.insert(parent=5, index='end', iid=id_counter, text=(intData[0]), values=(wrap(intData[1]), intData[4], intData[3]))
+                        htree.insert(parent=5, index='end', iid=id_counter, text=(intData[0]),
+                                     values=(wrap(intData[1]), intData[4], intData[3]))
                         id_counter += 1
 
             # Show transaction data
@@ -652,9 +647,6 @@ def main():
                         id_counter += 1
                     else:
                         print("Did not found synchronous network data ")
-            else:
-                print("Input doesnt match network type ")
-
 
             # Check partially synchronous data
             if search(psynchronous_type_data[0][2], bcombo1) or search(psynchronous_type_data[0][2], bcombo2):
@@ -666,8 +658,6 @@ def main():
                         id_counter += 1
                     else:
                         print("Did not found partially synchronous network data ")
-            else:
-                print("Input doesnt match network type ")
 
             # Check asynchronous data
             if search(asynchronous_type_data[0][2], bcombo1) or search(asynchronous_type_data[0][2], bcombo2):
@@ -679,16 +669,15 @@ def main():
                         id_counter += 1
                     else:
                         print("Did not found asynchronous network data ")
-            else:
-                print("Input doesnt match network type ")
+
 
             # Show cryptography data
             for cryptData in cryptography_boolean:
-                if ((cryptData[0] in bcombo1 or cryptData[0] in bcombo2) and cryptData[1] == 'False'):
-                    if ((cryptData[1] in bcombo1 and cryptData[1] in bcombo2) == False):
+                if (cryptData[0] in bcombo1 or cryptData[0] in bcombo2) and cryptData[1] == 'False':
+                    if not (cryptData[1] in bcombo1 and cryptData[1] in bcombo2):
                         # Show records
                         for c in cryptography_data:
-                            if (c != ''):
+                            if c != '':
                                 htree.insert(parent=12, index='end', iid=id_counter, text=(c[0]),
                                              values=(wrap(c[1]), c[4], c[3]))
                                 id_counter += 1
@@ -696,11 +685,10 @@ def main():
                     else:
                         # Show records
                         for c in cryptography_data:
-                            if (c != ''):
+                            if c != '':
                                 htree.insert(parent=12, index='end', iid=id_counter, text=(c[0]),
                                              values=(wrap(c[1]), c[4], c[3]))
                                 id_counter += 1
-        
 
             # Hide threats
             def hideThreats():
@@ -711,11 +699,14 @@ def main():
                 notary.config(state=NORMAL)
                 htlc.config(state=NORMAL)
                 relay.config(state=NORMAL)
-                treeview.destroy()
+                htree.destroy()
+                vsb.destroy()
+                heading.destroy()
+                sub_heading.destroy()
 
             # Button for hiding threat treeview
             hide_threats = Button(tab2, text="Hide threats", command=hideThreats)
-            hide_threats.grid(row=7, column=0, columnspan=4, pady=10, ipadx=100)
+            hide_threats.grid(row=7, column=0, columnspan=4, pady=10, ipadx=137)
 
             # Commit Changes and Close connection
             conn.commit()
@@ -732,7 +723,7 @@ def main():
             if v2 == 'HTLC': i = i + 1
             if v3 == 'Relay/Sidechain': i = i + 1
 
-            if (blockchain1combo_type.get() != '' and blockchain2combo_type.get() != '' and i == 1):
+            if blockchain1combo_type.get() != '' and blockchain2combo_type.get() != '' and i == 1:
                 show_threats_button['state'] = NORMAL
             else:
                 show_threats_button['state'] = DISABLED
@@ -756,7 +747,6 @@ def main():
             else:
                 submit_threats['state'] = DISABLED
 
-
         # Dropbown menu method based on the first input
         def pick_consensus(e):
             if b_type.get() == blockchainList[0]:
@@ -770,7 +760,6 @@ def main():
         def update_combos(e):
             blockchain1combo_type['values'] = [x for x in options if x != blockchain2combo_type.get()]
             blockchain2combo_type['values'] = [x for x in options if x != blockchain1combo_type.get()]
-
 
         def select_using_text(e):
             conn = sqlite3.connect('blockchain_book.db', timeout=50)
@@ -786,18 +775,19 @@ def main():
 
             if (category_input == 'Network'):
                 t_category2.config(state='enabled')
-                sql='SELECT Network_name FROM networkType'
+                sql = 'SELECT Network_name FROM networkType'
                 cursor.execute(sql)
 
-            if (category_input == 'Cryptography' or category_input == 'Block Creation' or category_input == 'Human Error' or category_input == 'Transaction'):
+            if (
+                    category_input == 'Cryptography' or category_input == 'Block Creation' or category_input == 'Human Error' or category_input == 'Transaction'):
                 t_category2.config(state='disabled')
 
             result = cursor.fetchall()
             result_list = [r for r, in result]
             t_category2['values'] = result_list
 
-
             # Database connection
+
         def databaseConnection():
             # Database connection
             conn = sqlite3.connect('blockchain_book.db', timeout=50)
@@ -913,12 +903,12 @@ def main():
             cursor.execute('INSERT OR IGNORE INTO cryptography VALUES(NULL,FALSE)')
 
             # Read data from csv
-            blockchain_type = pd.read_csv('data/btype.csv', sep = ';')
-            consensus_type = pd.read_csv('data/consensus.csv', sep = ';')
+            blockchain_type = pd.read_csv('data/btype.csv', sep=';')
+            consensus_type = pd.read_csv('data/consensus.csv', sep=';')
             strategy = pd.read_csv('data/strategy.csv', sep=';')
             threats = pd.read_csv('data/threat.csv', sep=';')
             consensus_threats = pd.read_csv('data/consensusThreat.csv', sep=';')
-            interoperability_threats = pd.read_csv('data/interoperabilityThreat.csv', sep =';')
+            interoperability_threats = pd.read_csv('data/interoperabilityThreat.csv', sep=';')
             stride = pd.read_csv('data/stride.csv', sep=';')
             stride_threats = pd.read_csv('data/strideThreat.csv', sep=';')
             network_threats = pd.read_csv('data/networkThreat.csv', sep=';')
@@ -928,7 +918,6 @@ def main():
             error_threats = pd.read_csv('data/errorThreat.csv', sep=';')
             transaction_threats = pd.read_csv('data/transactionThreat.csv', sep=';')
             blockCreation_threats = pd.read_csv('data/blockCreation.csv', sep=';')
-
 
             # Insert dato to sqlite
             blockchain_type.to_sql('btype', conn, if_exists='replace', index=False)
@@ -947,7 +936,6 @@ def main():
             transaction_threats.to_sql('transactionThreat', conn, if_exists='replace', index=False)
             blockCreation_threats.to_sql('blockCreationThreat', conn, if_exists='replace', index=False)
 
-
             # Commit Changes and Close connection
             conn.commit()
             cursor.close()
@@ -965,7 +953,6 @@ def main():
         type2 = StringVar()
         type3 = StringVar()
         type4 = StringVar()
-
 
         # Get data from database
         query1 = cursor.execute(
@@ -1008,7 +995,7 @@ def main():
         # binding the combobox
         b_type.bind("<<ComboboxSelected>>", pick_consensus)
 
-        b_name = ttk.Entry(tab1, text= 'Name')
+        b_name = ttk.Entry(tab1, text='Name')
         b_name.grid(row=1, column=1, padx=20, pady=10)
 
         consensus = ttk.Combobox(tab1, state="readonly", textvariable=type2, width=20, values=[" "])
@@ -1037,9 +1024,8 @@ def main():
         submit_button.grid(row=6, column=0, columnspan=2, pady=10, ipadx=100)
 
         # Query button
-        query_button = Button(tab1, text="Show records", command=showRecords)
+        query_button = Button(tab1, text="Show blockchains from database", command=showRecords)
         query_button.grid(row=7, column=0, columnspan=2, pady=10, padx=10, ipadx=137)
-
 
         """--------------------- TAB 2 ---------------------"""
         # Variables
@@ -1048,7 +1034,6 @@ def main():
         var3 = StringVar()
         block1 = StringVar()
         block2 = StringVar()
-
 
         # Combobox
         options = []
@@ -1070,13 +1055,13 @@ def main():
 
         # Checkbutton
         htlc = Checkbutton(tab2, text="HTLC", variable=var2, onvalue=strategy_data[1][1], command=varUpdate)
-        htlc.grid(row=2, column=1,pady=10)
+        htlc.grid(row=2, column=1, pady=10)
 
         notary = Checkbutton(tab2, text="Notary Scheme", variable=var1, onvalue=strategy_data[0][1], command=varUpdate)
-        notary.grid(row=2,column=0,pady=10,padx=20)
+        notary.grid(row=2, column=0, pady=10, padx=20)
 
         relay = Checkbutton(tab2, text="Relay/Sidechain", onvalue=strategy_data[2][1], variable=var3, command=varUpdate)
-        relay.grid(row=2,column=3,pady=10)
+        relay.grid(row=2, column=2, pady=10)
 
         # Textbox label
         blockchain1_type = Label(tab2, text="Blockchain A")
@@ -1086,9 +1071,7 @@ def main():
 
         # Submit Button
         show_threats_button = Button(tab2, text="Show threats", command=showThreats, state=DISABLED)
-        show_threats_button.grid(row=6, column=0, columnspan=4, pady=10, ipadx=100)
-
-
+        show_threats_button.grid(row=6, column=0, columnspan=4, pady=10, ipadx=137)
 
         """--------------------- TAB 3 ---------------------"""
         category_options = ['Consensus',
@@ -1098,15 +1081,6 @@ def main():
                             'Transaction',
                             'Block creation']
         # Variables
-        #var4 = StringVar()
-        #var5 = StringVar()
-        #var6 = StringVar()
-        #var7 = StringVar()
-        #var8 = StringVar()
-        #var9 = StringVar()
-        #var10 = StringVar()
-        #var11 = StringVar()
-        #var12 = StringVar()
         category1 = StringVar()
         category2 = StringVar()
         stride_data = {}  # dictionary to store all the IntVars
@@ -1127,7 +1101,7 @@ def main():
 
         cursor.execute("SELECT StrideID,Stride_Name from stride")
         all_stride = cursor.fetchall()
-        all_stride_list = [(s,t) for s, t in all_stride]
+        all_stride_list = [(s, t) for s, t in all_stride]
 
         row = 5
         for stride in all_stride_list:
@@ -1136,35 +1110,6 @@ def main():
             stride_button.grid(row=row, column=1, padx=10, pady=10)
             row += 1
             stride_data[stride] = var  # add IntVar to the dictionary
-
-
-
-        # Checkbutton
-        """spoofing = Checkbutton(tab3, text="Spoofing", variable=var4, command=varUpdate)
-        spoofing.grid(row=5, column=1, pady=10)
-
-        tampering = Checkbutton(tab3, text="Tampering", variable=var5, command=varUpdate)
-        tampering.grid(row=5, column=2, pady=10, padx=20)
-
-        repudiation = Checkbutton(tab3, text="Repudiation", variable=var6, command=varUpdate)
-        repudiation.grid(row=5, column=3, pady=10)
-
-        information_dis = Checkbutton(tab3, text="Information Disclosure", variable=var7, command=varUpdate)
-        information_dis.grid(row=5, column=4, pady=10)
-
-        dos = Checkbutton(tab3, text="Denial of Service ", variable=var8, command=varUpdate)
-        dos.grid(row=6, column=1, pady=10, padx=20)
-
-        elevation_pa = Checkbutton(tab3, text="Elevation of Privilege Account ", variable=var9, command=varUpdate)
-        elevation_pa.grid(row=6, column=2, pady=10)
-
-        elevation_b = Checkbutton(tab3, text="Elevation of Blockchain", variable=var10, command=varUpdate)
-        elevation_b.grid(row=6, column=3, pady=10, padx=20)
-
-        elevation_psc = Checkbutton(tab3, text="Elevation of Privilege Smart Contract", variable=var11)
-        elevation_psc.grid(row=6, column=4, pady=10) """
-
-
 
         # Textbox label
         threat_name = Label(tab3, text="Name")
@@ -1178,17 +1123,9 @@ def main():
         threat_category = Label(tab3, text="STRIDE")
         threat_category.grid(row=5, column=0)
 
-
-
-
         # Submit Button
         submit_threats = Button(tab3, text="Submit threat", command=submitThreat, state=DISABLED)
-        submit_threats.grid(row=14, column=0, columnspan=5, pady=30, ipadx=200)
-
-
-
-
-
+        submit_threats.grid(row=14, column=0, columnspan=5, pady=30, padx=10, ipadx=200)
 
         # Commit Changes and Close connection
         conn.commit()
@@ -1204,6 +1141,10 @@ def main():
 if __name__ == '__main__':
     root = Tk()
     root.title("Blockchain interoperability")
-    root.geometry("2000x1000")
+    # getting screen width and height of display
+    width = root.winfo_screenwidth()
+    height = root.winfo_screenheight()
+    root.geometry("%dx%d" % (width, height))
+    #root.geometry('2000x1400+200+300')
     main()
     root.mainloop()
