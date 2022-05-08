@@ -1140,7 +1140,7 @@ def main():
 # RUN THE PROGRAM
 if __name__ == '__main__':
     root = Tk()
-    root.title("Blockchain interoperability")
+    root.title("Blockchain vulnerabilities")
     # getting screen width and height of display
     width = root.winfo_screenwidth()
     height = root.winfo_screenheight()
