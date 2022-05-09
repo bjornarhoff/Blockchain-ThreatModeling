@@ -1054,13 +1054,13 @@ def main():
         strategy_data = cursor.fetchall()
 
         # Checkbutton
-        htlc = Checkbutton(tab2, text="HTLC", variable=var2, onvalue=strategy_data[1][1], command=varUpdate)
+        htlc = Checkbutton(tab2, text="HTLC", variable=var2, onvalue=strategy_data[1][1], command=varUpdate, offvalue="")
         htlc.grid(row=2, column=1, pady=10)
 
-        notary = Checkbutton(tab2, text="Notary Scheme", variable=var1, onvalue=strategy_data[0][1], command=varUpdate)
+        notary = Checkbutton(tab2, text="Notary Scheme", variable=var1, onvalue=strategy_data[0][1], command=varUpdate, offvalue="")
         notary.grid(row=2, column=0, pady=10, padx=20)
 
-        relay = Checkbutton(tab2, text="Relay/Sidechain", onvalue=strategy_data[2][1], variable=var3, command=varUpdate)
+        relay = Checkbutton(tab2, text="Relay/Sidechain", onvalue=strategy_data[2][1], variable=var3, command=varUpdate, offvalue="")
         relay.grid(row=2, column=2, pady=10)
 
         # Textbox label
