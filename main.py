@@ -299,11 +299,11 @@ def main():
                 hide_button['state'] = 'disable'
                 query_button['state'] = 'normal'
                 submit_button['state'] = 'normal'
-                b_type['state'] = 'normal'
+                b_type['state'] = "readonly"
                 b_name.config(state=NORMAL)
-                consensus['state'] = 'normal'
-                crypt.config(state=NORMAL)
-                network_type.config(state=NORMAL)
+                consensus['state'] = "readonly"
+                crypt.config(state="readonly")
+                network_type.config(state="readonly")
                 tree.destroy()
                 vsb.destroy()
                 heading.destroy()
@@ -694,8 +694,8 @@ def main():
             def hideThreats():
                 hide_threats['state'] = 'disable'
                 show_threats_button['state'] = 'normal'
-                blockchain1combo_type['state'] = 'normal'
-                blockchain2combo_type['state'] = 'normal'
+                blockchain1combo_type['state'] = "readonly"
+                blockchain2combo_type['state'] = "readonly"
                 notary.config(state=NORMAL)
                 htlc.config(state=NORMAL)
                 relay.config(state=NORMAL)
