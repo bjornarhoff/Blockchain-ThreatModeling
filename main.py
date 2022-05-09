@@ -230,7 +230,7 @@ def main():
             network_type.config(state=DISABLED)
 
             # Treeview
-            tree = ttk.Treeview(tab1, selectmode="extended", height=10)
+            tree = ttk.Treeview(tab1, selectmode="extended", height=8)
             tree.grid(row=13, column=0,columnspan=5, sticky='nsew',pady=20,padx=(30,0))
 
             # add a scrollbar
@@ -526,7 +526,7 @@ def main():
             sub_heading.grid(row=9, column=0, columnspan=7)
 
             # Treeview
-            htree = ttk.Treeview(tab2, height=6, selectmode="browse",
+            htree = ttk.Treeview(tab2, height=5, selectmode="browse",
                                  style="mystyle.Treeview", columns=('Description', 'STRIDE', "URL"))
             htree.grid(row=10, column=0, columnspan=7, sticky='nsw', pady=10, padx=(50,0))
             htree.bind("<Double-1>", url_collect)
